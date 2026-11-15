@@ -1,17 +1,7 @@
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
-const path=require('node:path');
-const Module=require('node:module');
-const ts=require('typescript');
-
-function loadTs(rel){
- const file=path.join(__dirname,'..',rel);
- const code=fs.readFileSync(file,'utf8');
- const output=ts.transpileModule(code,{fileName:file,compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
- const m=new Module(file,module);m.filename=file;m.paths=module.paths;m._compile(output,file);
- return m.exports;
-}
+const {loadTs}=require('./load-ts.cjs');
 const {SpeechGate}=loadTs('src/VoiceActivity.ts');
 const {Mesh}=loadTs('src/mesh.ts');
 
