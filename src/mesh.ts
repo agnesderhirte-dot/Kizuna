@@ -1,8 +1,9 @@
 import type {Chat,Settings} from './types';
-type Peer={incoming:Promise<void>;retry?:ReturnType<typeof setTimeout>;restarts:number;id:string;name:string;pc:RTCPeerConnection;dc?:RTCDataChannel;making:boolean;answerPending:boolean;ignore:boolean;candidates:RTCIceCandidateInit[];streams:Map<string,MediaStream>;labels:Record<string,string>;count:number;since:number;chatCount:number;soundAt:number;offset:number;speaking:boolean;speechTimeout?:ReturnType<typeof setTimeout>;transfer?:{hash:string;mime:string;size:number;parts:string[];received:number;expires:number}};
+import {isAllowedReaction} from './reactions';
+type Peer={incoming:Promise<void>;retry?:ReturnType<typeof setTimeout>;restarts:number;id:string;name:string;pc:RTCPeerConnection;dc?:RTCDataChannel;making:boolean;answerPending:boolean;ignore:boolean;candidates:RTCIceCandidateInit[];streams:Map<string,MediaStream>;labels:Record<string,string>;count:number;since:number;chatCount:number;soundAt:number;offset:number;speaking:boolean;speechTimeout?:ReturnType<typeof setTimeout>;reactionStart:number;reactionCount:number;transfer?:{hash:string;mime:string;size:number;parts:string[];received:number;expires:number}};
 export type Remote={peer:string;name:string;stream:MediaStream;kind:string};
 export class Mesh {
- peers=new Map<string,Peer>();self='';local=new Map<string,MediaStream>();sounds=new Map<string,Blob>();onChange=()=>{};onSpeaking=()=>{};localSpeaking=false;onChat=(m:Chat)=>{};onError=(s:string)=>{};onSound=(b:Blob)=>{};
+ peers=new Map<string,Peer>();self='';local=new Map<string,MediaStream>();sounds=new Map<string,Blob>();onChange=()=>{};onSpeaking=()=>{};localSpeaking=false;onChat=(m:Chat)=>{};onError=(s:string)=>{};onSound=(b:Blob)=>{};onReaction=(_id:string,_name:string,_emoji:string)=>{};private localReactionStart=0;private localReactionCount=0;
  onUpdateChannel=(id:string,name:string,channel:RTCDataChannel)=>{};
  constructor(public settings:Settings){}
  transport:(message:{to:string;data:unknown})=>Promise<unknown>=(message)=>window.vox.signal(message);
@@ -10,7 +11,7 @@ export class Mesh {
  add(id:string,name:string,initiator:boolean){
   if(this.peers.has(id))return;
   const iceServers:RTCIceServer[]=[{urls:'stun:stun.cloudflare.com:3478'}];if(this.settings.turnUrl)iceServers.push({urls:this.settings.turnUrl,username:this.settings.turnUser,credential:this.settings.turnPassword});
-  const pc=new RTCPeerConnection({iceServers,bundlePolicy:"max-bundle"});const p:Peer={incoming:Promise.resolve(),restarts:0,id,name,pc,making:false,answerPending:false,ignore:false,candidates:[],streams:new Map(),labels:{},count:0,chatCount:0,since:Date.now(),soundAt:0,offset:0,speaking:false};this.peers.set(id,p);
+  const pc=new RTCPeerConnection({iceServers,bundlePolicy:"max-bundle"});const p:Peer={incoming:Promise.resolve(),restarts:0,id,name,pc,making:false,answerPending:false,ignore:false,candidates:[],streams:new Map(),labels:{},count:0,chatCount:0,since:Date.now(),soundAt:0,offset:0,speaking:false,reactionStart:0,reactionCount:0};this.peers.set(id,p);
   pc.onicecandidate=e=>{if(e.candidate)this.signal(id,{candidate:e.candidate.toJSON()});};
   // Let the joining peer offer first, so the initial offer always includes SCTP.
   // A media-only offer can otherwise roll back its data channels in Chromium.
@@ -44,6 +45,10 @@ export class Mesh {
    if(p.speaking!==m.active){p.speaking=m.active;this.onSpeaking();}
    if(m.active)p.speechTimeout=setTimeout(()=>{p.speechTimeout=undefined;if(this.peers.get(p.id)===p&&p.speaking){p.speaking=false;this.onSpeaking();}},3600);
   }
+  else if(m.type==='reaction'&&isAllowedReaction(m.emoji)){
+   if(now-p.reactionStart>=3000){p.reactionStart=now;p.reactionCount=0;}
+   if(++p.reactionCount<=6)this.onReaction(p.id,p.name,m.emoji);
+  }
   else if(m.type==='chat'&&++p.chatCount<=10&&typeof m.text==='string'&&m.text.length>0&&m.text.length<=4000&&typeof m.id==='string'&&/^[a-zA-Z0-9_-]{8,80}$/.test(m.id)){this.onChat({id:m.id,text:m.text,sender:p.id,name:p.name,time:now});}
   else if(m.type==='ping'&&Number.isFinite(m.time))this.send(p,{type:'pong',time:m.time,remote:now});
   else if(m.type==='pong'&&Number.isFinite(m.time)&&Number.isFinite(m.remote)&&now-m.time>=0&&now-m.time<10000)p.offset=m.remote-(m.time+now)/2;
@@ -52,6 +57,7 @@ export class Mesh {
   else if(m.type==='sound-end'&&p.transfer){const t=p.transfer;p.transfer=undefined;if(t.received!==t.size)return;const bytes=new Uint8Array(t.size);let pos=0;for(const part of t.parts){const b=atob(part);for(let i=0;i<b.length;i++)bytes[pos++]=b.charCodeAt(i);}const hash=await digest(bytes);if(hash!==t.hash)return;if(this.sounds.size>=8)this.sounds.delete(this.sounds.keys().next().value!);this.sounds.set(hash,new Blob([bytes],{type:t.mime}));}
   else if(m.type==='sound-play'&&typeof m.hash==='string'&&Number.isFinite(m.at)){const b=this.sounds.get(m.hash);if(!b||now-p.soundAt<500)return;p.soundAt=now;const delay=m.at-p.offset-now;if(delay < -1000||delay>2000)return;setTimeout(()=>this.onSound(b),Math.max(0,delay));}
  }
+ sendReaction(emoji:string):boolean{if(!isAllowedReaction(emoji))return false;const now=Date.now();if(now-this.localReactionStart>=3000){this.localReactionStart=now;this.localReactionCount=0;}if(++this.localReactionCount>6)return false;this.broadcast({type:'reaction',emoji});return true;}
  setSpeaking(active:boolean){if(this.localSpeaking!==active){this.localSpeaking=active;this.onSpeaking();}this.broadcast({type:'speaking',active});}
  setLocal(kind:string,stream?:MediaStream){if(kind==='voice'&&!stream)this.setSpeaking(false);const old=this.local.get(kind);for(const p of this.peers.values()){if(old)for(const sender of p.pc.getSenders())if(sender.track&&old.getTracks().includes(sender.track))p.pc.removeTrack(sender);if(stream)for(const t of stream.getTracks())p.pc.addTrack(t,stream);}old?.getTracks().forEach(t=>t.stop());if(stream)this.local.set(kind,stream);else this.local.delete(kind);this.broadcast({type:'labels',labels:this.labels()});this.onChange();}
  async bitrate(){for(const p of this.peers.values())for(const sender of p.pc.getSenders()){
