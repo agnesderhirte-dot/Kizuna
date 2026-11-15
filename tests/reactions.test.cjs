@@ -3,10 +3,11 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
 const {loadTs}=require('./load-ts.cjs');
-const {Mesh}=loadTs('src/mesh.ts');
-const {REACTION_GROUPS,isAllowedReaction}=loadTs('src/reactions.ts');
+const meshModule=loadTs('src/mesh.ts');
+const reactionsModule=loadTs('src/reactions.ts');
 
-test('football and classic reaction catalog has safe bounded whitelist',()=>{
+test('football and classic reaction catalog has safe bounded whitelist',async()=>{
+ const {REACTION_GROUPS,isAllowedReaction}=await reactionsModule;
  const all=REACTION_GROUPS.flatMap(g=>g.items);
  assert.ok(all.includes('⚽')&&all.includes('🏆')&&all.includes('😂'));
  assert.equal(isAllowedReaction('TOR!'),true);
@@ -14,7 +15,8 @@ test('football and classic reaction catalog has safe bounded whitelist',()=>{
  assert.equal(isAllowedReaction('unknown'),false);
  assert.equal(new Set(all).size,all.length);
 });
-test('sender limits reactions to six per three seconds',()=>{
+test('sender limits reactions to six per three seconds',async()=>{
+ const {Mesh}=await meshModule;
  const m=new Mesh({});
  let sent=0;
  m.broadcast=()=>sent++;
@@ -25,6 +27,7 @@ test('sender limits reactions to six per three seconds',()=>{
  assert.equal(sent,6);
 });
 test('receiver rejects spoofed and excessive reactions',async()=>{
+ const {Mesh}=await meshModule;
  const m=new Mesh({});
  const received=[];m.onReaction=(id,name,emoji)=>received.push({id,name,emoji});
  const peer={id:'peer-a',name:'Friend',reactionStart:0,reactionCount:0,count:0,chatCount:0,since:Date.now()};
