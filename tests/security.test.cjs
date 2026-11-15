@@ -1,0 +1,7 @@
+const test=require('node:test');const assert=require('node:assert/strict');const {invite,endpoint,RateLimit,equal}=require('../desktop/security.cjs');
+const valid='voxrally://join/abcdefgh?token='+ 'a'.repeat(43)+'&server='+encodeURIComponent('ws://192.168.1.5:8765/');
+test('invite parsing rejects traversal, malformed secrets and unexpected query fields',()=>{assert.equal(invite(valid).room,'abcdefgh');for(const s of ['file:///C:/Windows','voxrally://join/../../Windows',valid+'&shell=cmd',valid+'&token='+ 'b'.repeat(43),valid.replace('abcdefgh','a%2Fb'),valid.replace('a'.repeat(43),'short')])assert.throws(()=>invite(s));});
+test('signaling requires TLS outside LAN and rejects credentials',()=>{for(const s of ['ws://example.com/','https://example.com/','wss://user:pass@example.com/','wss://example.com/?secret=a'])assert.throws(()=>endpoint(s));assert.equal(endpoint('wss://example.com/'),'wss://example.com/');assert.equal(endpoint('ws://127.0.0.1:8765/'),'ws://127.0.0.1:8765/');});
+test('constant-time secret comparison and bounded rate window',()=>{assert.equal(equal('abc','abc'),true);assert.equal(equal('abc','abcd'),false);const rate=new RateLimit(2,10000);assert.equal(rate.take(),true);assert.equal(rate.take(),true);assert.equal(rate.take(),false);});
+
+test('rate limits bound bytes as well as message counts',()=>{const bytes=new RateLimit(1024,10000);assert.equal(bytes.take(800),true);assert.equal(bytes.take(225),false);});

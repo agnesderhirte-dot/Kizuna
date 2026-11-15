@@ -1,0 +1,81 @@
+{
+  "name": "voxrally",
+  "version": "0.3.2",
+  "private": true,
+  "description": "Private P2P Gaming-Kommunikation",
+  "author": "KIZUNA",
+  "license": "UNLICENSED",
+  "main": "desktop/main.cjs",
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit && vite build",
+    "start": "electron .",
+    "test": "node --test tests/*.test.cjs",
+    "test:desktop": "node scripts/smoke.cjs",
+    "dist": "node scripts/sign-update.cjs --init && pnpm build && electron-builder --win nsis --x64 --publish never && node scripts/sign-update.cjs",
+    "signaling": "node desktop/signaling.cjs",
+    "release": "node scripts/release.cjs"
+  },
+  "dependencies": {
+    "@mediapipe/tasks-vision": "0.10.32",
+    "electron-updater": "6.8.11",
+    "peerjs": "1.5.5",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "ws": "8.22.2",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.0",
+    "@types/node": "26.6.6",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@types/ws": "8.18.2",
+    "electron": "45.3.0",
+    "electron-builder": "26.18.0",
+    "typescript": "7.0.2",
+    "vite": "8.3.8"
+  },
+  "build": {
+    "appId": "de.voxrally.desktop",
+    "productName": "KIZUNA",
+    "asar": true,
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "desktop/**/*",
+      "package.json"
+    ],
+    "protocols": [
+      {
+        "name": "KIZUNA Einladung",
+        "schemes": [
+          "voxrally"
+        ]
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "signExecutable": false,
+      "icon": "build/icon.ico",
+      "executableName": "VoxRally"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": false,
+      "allowToChangeInstallationDirectory": true,
+      "artifactName": "KIZUNA-Setup-x64.exe",
+      "deleteAppDataOnUninstall": false
+    }
+  }
+}

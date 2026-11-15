@@ -1,0 +1,14 @@
+# VoxRally – fortlaufender Entwicklungsauftrag (15.11.2026)
+Priorität: Jeder Bildschirm, eigener oder fremder, per Doppelklick im Vollbild. Beide Webcams bleiben klein in den Ecken sichtbar und verschiebbar. Die alternative Viereransicht enthält beide Bildschirme und Kameras. Ausgeblendete Streams senden weiter.
+Qualität während der Übertragung und im Vollbild einstellen: Bildschirmauflösung, 30/60 FPS, Detail/Bewegung, Bandbreite; Kamera 720/1080p und Bandbreite. Sender stellt seine eigene Qualität ein, tatsächliche Werte anzeigen.
+Freunde über direkten voxrally://-Link einladen, Link kopieren/anzeigen, E-Mail-Entwurf im lokalen Mailprogramm. Keine E-Mails ohne explizite Sendeanweisung versenden. App muss beim Empfänger installiert sein; Mailprogramme können eigene Linkschemata blockieren, deshalb Einfügen unterstützen.
+Originale Manager-Skins inspiriert von den Jahren 18–27, keine kopierten Spielressourcen. Varianten Classic 18, Club 22, Matchday 24, Portal 27 (Konzept).
+Smileys im Chat, eigene Torhymnen/Sounds importieren und bei Freunden abspielen, Zugriff auch im Vollbild. Separate Lautstärken und Ausgabegerät beachten.
+Webcam-Hintergründe unabhängig vom App-Hintergrund: Original, weichzeichnen, eigenes Bild. Freistellung ausschließlich lokal, Modelle mitliefern. Keine Kameraaktivität nach Verlassen/Schließen.
+Kamera, Mikrofon und Ton praktisch prüfen und echte Hardwaretests von Simulationen unterscheiden. Discord-Installationsdateien nur lesend zur Orientierung, keine Kontodaten oder privaten Chats lesen.
+Ressourcen sparen: gezielte Änderungen und Prüfungen, keine Agentenparallelisierung, vorhandene Bibliotheken nutzen. Kameraeffekt nur bei Bedarf laden; Kamera nicht bei jeder Skin-/Bitratenänderung neu öffnen. Neue Bibliothek nur für benötigte lokale Personensegmentierung.
+Keine kostenpflichtige Infrastruktur. Online-Signaling über vorhandenen kostenlosen Dienst; NAT kann direkten Verkehr blockieren. Zwei lokale Internet-Signaling-Clients ersetzen keine Abnahme auf zwei getrennten Internetanschlüssen.
+
+Updates: Versionsabgleich im Raum, Hinweis in App und Windows-Benachrichtigung (abhängig von Windows-Fokusregeln). Signierten Installer direkt über separaten P2P-Datenkanal anbieten. Empfänger bestätigt Download und Installation. Kein zusätzlicher Server. Installation erst nach Ed25519-Signatur- und SHA256-Prüfung; keine automatische Ausführung.
+Releaseverfahren: Version in package.json erhöhen, vorhandenen privaten Schlüssel build/private/update-key.pem erhalten (niemals veröffentlichen), sign-update.cjs --init vor Build, sign-update.cjs nach Build ausführen. EXE und EXE.update.json gemeinsam im Ordner lassen. Private Schlüssel nicht kopieren/paketieren. APP_VERSION wird automatisch aus package.json erzeugt.
+Ab 0.3.0 ist der Updateweg integriert; ältere Installationen müssen einmal manuell aktualisiert werden. Beide Teilnehmer und der anbietende Rechner müssen für P2P-Updates verbunden sein.

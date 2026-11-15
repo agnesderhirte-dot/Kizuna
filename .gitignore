@@ -1,0 +1,25 @@
+node_modules/
+dist/
+release/
+.test-data/
+test-results/
+*.log
+
+build/private/
+
+# Local credentials and signing secrets
+.env
+.env.*
+!.env.example
+!.env.sample
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.pem
+!desktop/update-public.pem
+.npmrc
+.pypirc
+credentials.json
+secrets.json
