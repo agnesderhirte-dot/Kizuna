@@ -15,8 +15,8 @@ Stand: 2026-11-16. Referenz: `main` / KIZUNA 0.3.2, Entwicklungsbranch `feat/ret
 |---|---|---|---|---|---|
 | KZ-001 | P0 | Bestandsaufnahme, Test-Baseline, Sicherheits-/Medienrisiken | GPT-6 High | In Arbeit | Code-/Testinventar, Build und Baseline-Messwerte; echte Zwei-PC-Abnahme offen |
 | KZ-002 | P1 | Neun Skins und Skin-Galerie inklusive Fokusmodus | GPT-6 Medium, Review High | Implementiert im PR #1 | TypeScript/GUI/Regression, Skinwechsel im Stream, Datenerhalt |
-| KZ-003 | P1 | Sprecherumrandung (Mikrofon statt Spielaudio) | GPT-6 High | In Arbeit | Lokal/remote korrekt sichtbar, Timeout, Mute, Vollbild, Tests, begrenzter CPU- und Signaling-Overhead |
-| KZ-004 | P1 | Synchrone Fußball- und Standardreaktionen | GPT-6 Medium | Offen | Whitelist, Peer-Ratenlimit, visuelle Overlays, Vollbild, Blockierbarkeit |
+| KZ-003 | P1 | Sprecherumrandung (Mikrofon statt Spielaudio) | GPT-6 High | Implementiert, automatisierte Tests offen | Lokal/remote korrekt sichtbar, Timeout, Mute, Vollbild, Tests, begrenzter CPU- und Signaling-Overhead |
+| KZ-004 | P1 | Synchrone Fußball- und Standardreaktionen | GPT-6 Medium | Implementiert, automatisierte Tests offen | Whitelist, Peer-Ratenlimit, visuelle Overlays, Vollbild, Blockierbarkeit |
 | KZ-005 | P0 | Schlechter Ton: Messung + Geräte-, Opus- und Loopback-Diagnose | GPT-6 High | Offen | Reale Hörtests sowie Jitter/Verlust/Latenz dokumentiert |
 | KZ-006 | P0 | 1440p60: Capture/Encoder/Netzwerkprofile benchmarken | GPT-6 Extra High | Offen | Soll-/Ist-FPS, Bitrate, RTT, Drops, CPU/GPU auf zwei PCs; keine unbelegte FPS-Garantie |
 | KZ-007 | P1 | Soundboard: eigene Tracks und legal lizenzierte freie Effekte | GPT-6 Medium/High | Offen | Dateiformate, Lautheit, Rechte/Lizenzprotokoll, Empfänger-Test |
