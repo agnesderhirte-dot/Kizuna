@@ -1,3 +1,19 @@
+# KIZUNA – aktueller Entwicklungs-Handoff 16.11.2026
+
+**Dieser Abschnitt ergänzt die historische KIZUNA-0.3.2-Übergabe unten; alte Testergebnisse gelten nicht automatisch für neue Funktionen.**
+
+- GitHub: `agnesderhirte-dot/Kizuna`.
+- Entwicklungsbranch: `feat/retro-modern-skins`; Draft-PR #1: https://github.com/agnesderhirte-dot/Kizuna/pull/1.
+- Neu: neun Skinvarianten mit Skin-Galerie, Streaming-Fokusmodus, pegelbasierte Mikrofon-Sprechererkennung und skinabhängige Ränder, Remote-Zustände über bestehenden WebRTC-Datenkanal, Fußball-/Standardreaktionen (TOR/VAR/ELFMETER) mit maximal sechs Reaktionen pro drei Sekunden und lokalen Stream-Overlays.
+- Dauerhafte Aufgabenliste: `docs/MASTER_ROADMAP.md`; lückenloser Arbeitsstand: `docs/DEVELOPMENT_PROGRESS.md`.
+- Build und Unit-Tests **grün**: GitHub Actions `validate` Run 43775020122, SHA `4a57166b0a3a62af7a028f7bf00b1775dcb99469`; TypeScript + Vite bestanden, 24/25 Tests bestanden, einer übersprungen. Frühere CI-Fehler behoben.
+- Kein neuer Installer, kein Merge in `main`, keine Update-Publikation. Nutzerfreigabe vor Release zwingend.
+- **Wichtige Grenze**: Sprecheraktivität ist eine ressourcenschonende RMS-/dB-Heuristik, keine sprachspezifische VAD. Reale Mikrofon-, Audio-, Zwei-PC-, Windows-GUI- und 1440p60-Tests stehen aus.
+- Nächste Schritte: Sichtprüfung Skins/Sprecher/Emojis auf zwei PCs, Mikrofontest und Analyse schlechter Audioqualität; 1440p60-Messung; sichere zentrale Updates nach bestätigter Signatur-/Release-Konfiguration.
+- Schlüssel, App-ID, `voxrally://`, lokaler Datenpfad und bestehende Update-Vertrauensbasis unverändert lassen.
+
+---
+
 # KIZUNA 0.3.2 – Übergabe 15.11.2026
 
 ## Stand
