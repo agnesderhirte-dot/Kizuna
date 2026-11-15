@@ -14,9 +14,9 @@ Stand: 2026-11-16. Referenz: `main` / KIZUNA 0.3.2, Entwicklungsbranch `feat/ret
 | ID | Priorität | Aufgabe | Modell-Empfehlung | Status | Akzeptanz und Blocker |
 |---|---|---|---|---|---|
 | KZ-001 | P0 | Bestandsaufnahme, Test-Baseline, Sicherheits-/Medienrisiken | GPT-6 High | In Arbeit | Code-/Testinventar, Build und Baseline-Messwerte; echte Zwei-PC-Abnahme offen |
-| KZ-002 | P1 | Neun Skins und Skin-Galerie inklusive Fokusmodus | GPT-6 Medium, Review High | Implementiert im PR #1 | TypeScript/GUI/Regression, Skinwechsel im Stream, Datenerhalt |
-| KZ-003 | P1 | Sprecherumrandung (Mikrofon statt Spielaudio) | GPT-6 High | Implementiert, automatisierte Tests offen | Lokal/remote korrekt sichtbar, Timeout, Mute, Vollbild, Tests, begrenzter CPU- und Signaling-Overhead |
-| KZ-004 | P1 | Synchrone Fußball- und Standardreaktionen | GPT-6 Medium | Implementiert, automatisierte Tests offen | Whitelist, Peer-Ratenlimit, visuelle Overlays, Vollbild, Blockierbarkeit |
+| KZ-002 | P1 | Neun Skins und Skin-Galerie inklusive Fokusmodus | GPT-6 Medium, Review High | CI getestet; Windows-GUI offen | TypeScript/GUI/Regression, Skinwechsel im Stream, Datenerhalt |
+| KZ-003 | P1 | Sprecherumrandung (Mikrofon statt Spielaudio) | GPT-6 High | CI getestet; reale Mikrofone offen | Lokal/remote korrekt sichtbar, Timeout, Mute, Vollbild, Tests, begrenzter CPU- und Signaling-Overhead |
+| KZ-004 | P1 | Synchrone Fußball- und Standardreaktionen | GPT-6 Medium | CI getestet; Zwei-PC-GUI offen | Whitelist, Peer-Ratenlimit, visuelle Overlays, Vollbild, Blockierbarkeit |
 | KZ-005 | P0 | Schlechter Ton: Messung + Geräte-, Opus- und Loopback-Diagnose | GPT-6 High | Offen | Reale Hörtests sowie Jitter/Verlust/Latenz dokumentiert |
 | KZ-006 | P0 | 1440p60: Capture/Encoder/Netzwerkprofile benchmarken | GPT-6 Extra High | Offen | Soll-/Ist-FPS, Bitrate, RTT, Drops, CPU/GPU auf zwei PCs; keine unbelegte FPS-Garantie |
 | KZ-007 | P1 | Soundboard: eigene Tracks und legal lizenzierte freie Effekte | GPT-6 Medium/High | Offen | Dateiformate, Lautheit, Rechte/Lizenzprotokoll, Empfänger-Test |
@@ -39,3 +39,6 @@ Stand: 2026-11-16. Referenz: `main` / KIZUNA 0.3.2, Entwicklungsbranch `feat/ret
 
 ## Release-Regeln
 Keine Änderung ungefragt nach `main` mergen. Kein Update an andere Nutzer pushen, ohne Nutzereinwilligung, Windows-Codesignatur und gültige Signaturkette. Alte `voxrally://`-Kennungen und `de.voxrally.desktop` sowie vorhandene Schlüssel bis zu einer geprüften Migration erhalten. Die vorhandene P2P-Updatefunktion erhalten. Tests und Build nicht als bestanden markieren, bevor sie ausgeführt wurden.
+
+### Nachweisstand 16.11.2026
+GitHub Actions `validate`, Run **43775020122** (`4a57166b0a3a62af7a028f7bf00b1775dcb99469`): `pnpm build` erfolgreich, `pnpm test` **24 bestanden / 0 fehlgeschlagen / 1 übersprungen**. Das ist **keine Windows-/Mikrofon-/Zwei-PC-Abnahme**. Nachfolge-Commits an Dokumentation sind unveränderte Quelllogik, müssen aber auf ihren eigenen CI-Status geprüft werden.
