@@ -20,3 +20,13 @@ Commit, betroffene Dateien, Status der Roadmap, nachweislich ausgeführte Tests 
 - GitHub Actions: `.github/workflows/validate.yml` prüft bei PR TypeScript-Build und Unit-Tests. Momentan keine Testausführung/GitHub-Checks gemeldet.
 - **Verifikation:** GitHub-Commits bestätigt; strukturelle Konsistenzprüfung offen. Kein vollständiger Renderer-/Electron-Build, keine Windows-Abnahme, kein realer Mikrofontest in dieser Sitzung. Kein Merge oder Installer/Update veröffentlicht.
 - **Nächster Schritt:** CI-Ergebnisse beobachten, TypeScript-/Unit-Tests ausführen und Fehler korrigieren; dann Zwei-PC-Sprecher- und Emoji-Test, Audio-Baseline, 1440p60-Performanceprofil. Vor produktivem Release Nutzerfreigabe erforderlich.
+
+## 2026-11-16 – CI nach Fehlerbehebung erfolgreich
+- CI-Lauf: https://github.com/agnesderhirte-dot/Kizuna/actions/runs/43775020122
+- Commit: `4a57166b0a3a62af7a028f7bf00b1775dcb99469`.
+- `pnpm install --frozen-lockfile` **bestanden**.
+- `pnpm build` (TypeScript + Vite) **bestanden**.
+- `pnpm test`: **25 insgesamt, 24 bestanden, 0 fehlgeschlagen, 1 übersprungen**.
+- Frühere CI-Fehler: alte Test-Loader nutzten entfernte TypeScript-7-JavaScript-API; via Node 24 Native-TypeScript-Loader behoben. Im letzten Lauf zusätzlich fehlenden `path`-Import eines Tests korrigiert.
+- Produktionsfreigabe weiterhin **ausstehend**: reales Hardware-Mikrofon, akustische Verständlichkeit, sichtbare Sprecherumrandung, Remote-Emoji-Overlay, lange Streams, Windows-/Zwei-PC-Abnahme.
+- Keine App-Installation oder Updateveröffentlichung vorgenommen; PR #1 bleibt Draft.
