@@ -2,10 +2,11 @@ const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const {loadTs}=require('./load-ts.cjs');
-const {SpeechGate}=loadTs('src/VoiceActivity.ts');
-const {Mesh}=loadTs('src/mesh.ts');
+const speechModule=loadTs('src/VoiceActivity.ts');
+const meshModule=loadTs('src/mesh.ts');
 
-test('speaking requires consecutive microphone peaks and has hangover',()=>{
+test('speaking requires consecutive microphone peaks and has hangover',async()=>{
+ const {SpeechGate}=await speechModule;
  const gate=new SpeechGate(-43,420);
  assert.equal(gate.sample(-60,0),false);
  assert.equal(gate.sample(-30,100),false);
@@ -17,7 +18,8 @@ test('speaking requires consecutive microphone peaks and has hangover',()=>{
  assert.equal(gate.active,false);
  assert.equal(gate.sample(-30,900),false);
 });
-test('speaking does not react to silence or invalid audio measurements',()=>{
+test('speaking does not react to silence or invalid audio measurements',async()=>{
+ const {SpeechGate}=await speechModule;
  const gate=new SpeechGate();
  for(let t=0;t<=2000;t+=100)assert.equal(gate.sample(-70,t),false);
  assert.equal(gate.sample(NaN,2100),false);
@@ -25,6 +27,7 @@ test('speaking does not react to silence or invalid audio measurements',()=>{
  assert.equal(gate.sample(-20,2300),true);
 });
 test('remote speaking messages validate booleans and notify only on transitions',async()=>{
+ const {Mesh}=await meshModule;
  const m=new Mesh({});
  let changes=0;
  m.onSpeaking=()=>changes++;
@@ -42,7 +45,8 @@ test('remote speaking messages validate booleans and notify only on transitions'
  assert.equal(changes,2);
  m.remove(peer.id);
 });
-test('local speaking sends heartbeat without unnecessary UI updates',()=>{
+test('local speaking sends heartbeat without unnecessary UI updates',async()=>{
+ const {Mesh}=await meshModule;
  const m=new Mesh({});
  const outgoing=[];let changes=0;
  m.broadcast=value=>outgoing.push(value);
