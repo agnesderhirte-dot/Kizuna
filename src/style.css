@@ -104,3 +104,20 @@
 .skin-messenger03{--speaker-accent:#92cfff}
 .skin-neonwave{--speaker-accent:#d48aff}
 .skin-glassmodern{--speaker-accent:#bdcbff}
+
+
+/* Small, locally rendered reactions: no extra video encoding or image assets. */
+.stream-reactions{position:relative}
+.stream-reactions summary{cursor:pointer;padding:8px 12px;font-size:12px;border:1px solid #ffffff30;border-radius:8px;white-space:nowrap}
+.reaction-menu{position:absolute;z-index:12;top:100%;left:0;background:#17212bee;border:1px solid #667a93;border-radius:12px;padding:12px;width:min(370px,80vw);max-height:60vh;overflow:auto;box-shadow:0 10px 30px #000c}
+.reaction-menu strong{font-size:11px;display:block;margin:4px 0 6px}
+.reaction-buttons{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
+.reaction-buttons button{min-width:0;font-size:21px;min-height:38px;padding:4px;overflow-wrap:anywhere}
+.reaction-buttons button[title$="!"]{font-size:10px;font-weight:800}
+.stream-reaction-overlay{pointer-events:none;position:absolute;z-index:6;bottom:54px;left:50%;transform:translateX(-50%);max-width:92%;display:flex;align-items:flex-end;justify-content:center;gap:10px;flex-wrap:wrap}
+.stream-reaction{min-width:55px;max-width:100px;background:#0b142ad9;color:#fff;box-shadow:0 0 0 1px var(--speaker-accent,var(--accent));border-radius:12px;padding:5px 9px;text-align:center;animation:kizuna-reaction 340ms ease-out}
+.stream-reaction strong{display:block;font-size:27px;line-height:1.2;overflow-wrap:anywhere}
+.stream-reaction strong:not(:first-child){font-size:14px}
+.stream-reaction span{display:block;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@keyframes kizuna-reaction{from{opacity:0;transform:translateY(15px) scale(.9)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(prefers-reduced-motion:reduce){.stream-reaction{animation:none}}
