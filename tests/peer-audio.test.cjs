@@ -26,7 +26,7 @@ test('voice mixing only affects peer microphone receiver elements',()=>{
  assert.ok(main.includes("audio.volume=prefs.current.volume.sound"));
  assert.ok(main.includes("setVoiceLevels({});"));
  assert.ok(main.includes("delete next[e.id]"));
- assert.ok(panel.includes("Ändert nur, wie laut du die Stimme hörst"));
+ assert.ok(panel.includes("Stelle Stimmen einzeln ein."));
  assert.ok(panel.includes("onChange(peer.id,volume===0?1:0)"));
  assert.ok(stage.includes("const playsScreenAudio=!tile.local&&tile.kind==='screen'"));
 });
