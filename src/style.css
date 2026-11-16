@@ -137,3 +137,9 @@
 .stream-presets{display:grid;grid-template-columns:1fr;gap:6px;margin:12px 0}
 .stream-presets button{font-size:11px;text-align:left;padding:9px 10px;white-space:normal}
 .stream-presets button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+
+/* Independent remote game audio controls (voice and reactions unaffected). */
+.stage-toolbar .stream-sound-toggle{font-size:11px;white-space:nowrap;border:1px solid var(--speaker-accent,var(--accent));}
+.stage-toolbar .stream-sound-toggle[aria-pressed="true"]{opacity:.88;background:#3a273c;color:#fff;}
+.stage-toolbar .stream-sound-toggle:focus-visible{outline:2px solid var(--speaker-accent,var(--accent));outline-offset:2px;}
