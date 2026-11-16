@@ -1,3 +1,15 @@
+# AKTUELLSTE ÜBERGABE – 16.11.2026 / Megaprompt KZ-013 & KZ-014
+
+- Entwicklungsbranch `feat/retro-modern-skins`, Draft-PR https://github.com/agnesderhirte-dot/Kizuna/pull/1, `main` unverändert.
+- **Geprüfter Quellstand:** `f61ec2a953ab41fc6c40ef0187ce9f642e0047d3`, [CI-Run 43828763644](https://github.com/agnesderhirte-dot/Kizuna/actions/runs/43828763644): Build grün, **74 Tests erfolgreich, 0 fehlgeschlagen, 1 übersprungen**; `pnpm audit --prod --audit-level high` erfolgreich, keine bekannten Runtime-Lücken.
+- **Neu:** WebRTC-ICE-Schema-/Längenprüfung, Schutz vor doppelten DataChannels, Peer-Sound-ACK-Cache-Limits, Audio-/Stream-/Timer-Cleanup, Cloud-Signaling-Queue-/Rate-Limits, Bild-Dimensionen vor nativer Dekodierung.
+- **Dateien:** `src/mesh.ts`, `src/cloud.ts`, `desktop/image-limits.cjs`, `desktop/main.cjs`, `tests/mesh-hardening.test.cjs`, `tests/signaling-hardening.test.cjs`, `tests/image-limits.test.cjs`, `.github/workflows/validate.yml`.
+- **Vorläufiges Audit:** `docs/SECURITY_AUDIT.md`. Roadmap `docs/MASTER_ROADMAP.md` (KZ-013/014/019), Testmatrix `docs/HARDWARE_ACCEPTANCE.md`.
+- **Offen:** unabhängige KZ-014-Endprüfung, reale Windows- und Zwei-PC-/Audio-/1440p60-Dauertests, Signatur und geprüfter zentraler Updater. **Keine Releasefreigabe**; keine installierte Software verändert.
+- Nach Dokumentationscommits jeweils neuesten CI-SHA prüfen; vorherige Testbelege nicht automatisch auf neue Programmänderungen übertragen.
+
+---
+
 # AKTUELLSTE ÜBERGABE – 16.11.2026, KZ-016–018
 
 Diese Hinweise überschreiben die älteren Statusangaben weiter unten; die alten Angaben sind nur noch historische Momentaufnahmen.
