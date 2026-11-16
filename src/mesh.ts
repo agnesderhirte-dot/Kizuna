@@ -126,9 +126,9 @@ export class Mesh {
   else if(m.type==='capabilities'&&m.soundAck===true)p.soundAck=true;
   else if(m.type==='ping'&&Number.isFinite(m.time))this.send(p,{type:'pong',time:m.time,remote:now});
   else if(m.type==='pong'&&Number.isFinite(m.time)&&m.time===p.lastPingAt&&Number.isFinite(m.remote)&&now-m.time>=0&&now-m.time<10000){p.offset=m.remote-(m.time+now)/2;p.clockObservedAt=now;}
-  else if(m.type==='sound-start'&&typeof m.hash==='string'&&/^[0-9a-f]{64}$/.test(m.hash)&&['audio/wav','audio/mpeg','audio/ogg','audio/flac'].includes(m.mime)&&Number.isInteger(m.size)&&m.size>0&&m.size<=10*1024*1024){if(this.sounds.has(m.hash)){this.send(p,{type:'sound-ready',hash:m.hash});return;}if(now-p.soundTransferAt<800)return;p.soundTransferAt=now;p.transfer={hash:m.hash,mime:m.mime,size:m.size,parts:[],received:0,expires:now+60000};}
+  else if(m.type==='sound-start'&&typeof m.hash==='string'&&/^[0-9a-f]{64}$/.test(m.hash)&&['audio/wav','audio/mpeg','audio/ogg','audio/flac'].includes(m.mime)&&Number.isInteger(m.size)&&m.size>0&&m.size<=10*1024*1024){if(this.sounds.has(m.hash)){this.cacheSound(m.hash,this.sounds.get(m.hash)!);this.send(p,{type:'sound-ready',hash:m.hash});return;}if(now-p.soundTransferAt<800)return;p.soundTransferAt=now;p.transfer={hash:m.hash,mime:m.mime,size:m.size,parts:[],received:0,expires:now+60000};}
   else if(m.type==='sound-part'&&p.transfer){const t=p.transfer;if(now>t.expires||typeof m.bytes!=='string'||m.bytes.length>16384||!/^[A-Za-z0-9+/]*={0,2}$/.test(m.bytes)){p.transfer=undefined;return;}t.received+=atob(m.bytes).length;if(t.received>t.size){p.transfer=undefined;return;}t.parts.push(m.bytes);}
-  else if(m.type==='sound-end'&&p.transfer){const t=p.transfer;p.transfer=undefined;if(t.received!==t.size)return;const bytes=new Uint8Array(t.size);let pos=0;for(const part of t.parts){const b=atob(part);for(let i=0;i<b.length;i++)bytes[pos++]=b.charCodeAt(i);}const hash=await digest(bytes);if(hash!==t.hash)return;if(this.sounds.size>=8)this.sounds.delete(this.sounds.keys().next().value!);this.sounds.set(hash,new Blob([bytes],{type:t.mime}));this.send(p,{type:'sound-ready',hash});}
+  else if(m.type==='sound-end'&&p.transfer){const t=p.transfer;p.transfer=undefined;if(t.received!==t.size)return;const bytes=new Uint8Array(t.size);let pos=0;for(const part of t.parts){const b=atob(part);for(let i=0;i<b.length;i++)bytes[pos++]=b.charCodeAt(i);}const hash=await digest(bytes);if(hash!==t.hash)return;this.cacheSound(hash,new Blob([bytes],{type:t.mime}));this.send(p,{type:'sound-ready',hash});}
   else if(m.type==='sound-ready'&&typeof m.hash==='string'&&/^[0-9a-f]{64}$/.test(m.hash)&&p.offeredSounds?.has(m.hash)){
    if(p.readySounds.size>=32&&!p.readySounds.has(m.hash))p.readySounds.delete(p.readySounds.values().next().value!);
    p.readySounds.add(m.hash);
@@ -146,6 +146,20 @@ export class Mesh {
    const timer=setTimeout(()=>{this.playbackTimers.delete(timer);if(this.peers.get(p.id)===p)this.onSound(b,p.id);},Math.max(0,delay));
    this.playbackTimers.add(timer);
   }
+ }
+ /** Limit the in-memory peer sound cache to 24 MiB and 8 clips. */
+ cacheSound(hash:string,blob:Blob){
+  if(blob.size>10*1024*1024)throw Error('Sound zu groß');
+  if(this.sounds.has(hash))this.sounds.delete(hash);
+  let total=[...this.sounds.values()].reduce((sum,item)=>sum+item.size,0);
+  while(this.sounds.size>=8||total+blob.size>24*1024*1024){
+   const oldest=this.sounds.keys().next().value;
+   if(!oldest)break;
+   const previous=this.sounds.get(oldest);
+   this.sounds.delete(oldest);
+   total-=previous?.size||0;
+  }
+  this.sounds.set(hash,blob);
  }
  sendReaction(emoji:string):boolean{if(!isAllowedReaction(emoji))return false;const now=Date.now();if(now-this.localReactionStart>=3000){this.localReactionStart=now;this.localReactionCount=0;}if(++this.localReactionCount>6)return false;this.broadcast({type:'reaction',emoji});return true;}
  setProfile(profile:SharedProfile){
