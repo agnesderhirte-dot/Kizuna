@@ -10,7 +10,7 @@ test('remote game audio mute is independent of voice and soundboard',()=>{
  const stage=fs.readFileSync(path.join(__dirname,'../src/VideoStage.tsx'),'utf8');
  assert.ok(app.includes('screenMuted={screenMuted}'));
  assert.ok(app.includes("r.kind!=='screen'&&r.stream.getAudioTracks()"));
- assert.ok(app.includes('muted={deaf} volume={r.kind==="screen"?volume.screen:volume.voice}'));
+ assert.ok(app.includes('muted={deaf} volume={peerVoiceVolume(volume.voice,r.peer,voiceLevels)}'));
  assert.ok(app.includes('audio.volume=prefs.current.volume.sound'));
  assert.ok(stage.includes("const playsScreenAudio=!tile.local&&tile.kind==='screen'"));
  assert.ok(stage.includes('muted={!playsScreenAudio||sound.muted}'));
