@@ -1,6 +1,10 @@
 # Changelog
 
 ## Unreleased – geplante KIZUNA 0.4.0 (16.11.2026, noch nicht installiert oder freigegeben)
+- V1-Datenbank vor dem Upgrade automatisch als konsistenten, auf Integrität geprüften SQLite-Snapshot sichern.
+- P2P-Updateangebote bleiben auf ihren Raum beschränkt; verspätete Auswahldialoge veröffentlichen nichts im neuen Raum.
+- Gezielter Diagnosebericht für bekannte moderate Build-Abhängigkeits-Advisories ergänzt.
+
 - Mikrofon- und Bildschirmfreigaben werden nach einem Raumwechsel/Abbruch nicht nachträglich wieder aktiviert.
 - SQLite-Upgrade von 0.3.2 auf 0.4.0 mit transaktionaler Migration, Schema- und Datenerhaltprüfung (automatisiert).
 - Lokalen LAN-Signaling-Server beim Verlassen von Räumen schließen und ausstehende Capture-Tickets invalidieren.
