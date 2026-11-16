@@ -4,7 +4,7 @@ export type SharedProfile={name:string;photo:string;bio:string;game:string};
 type Peer={profile?:SharedProfile;incoming:Promise<void>;retry?:ReturnType<typeof setTimeout>;restarts:number;id:string;name:string;pc:RTCPeerConnection;dc?:RTCDataChannel;making:boolean;answerPending:boolean;ignore:boolean;candidates:RTCIceCandidateInit[];streams:Map<string,MediaStream>;labels:Record<string,string>;count:number;since:number;chatCount:number;soundAt:number;soundTransferAt:number;soundAck:boolean;readySounds:Set<string>;pendingSoundReady:Map<string,{resolve:(ok:boolean)=>void;timeout:ReturnType<typeof setTimeout>}>;offset:number;speaking:boolean;speechTimeout?:ReturnType<typeof setTimeout>;reactionStart:number;reactionCount:number;transfer?:{hash:string;mime:string;size:number;parts:string[];received:number;expires:number}};
 export type Remote={peer:string;name:string;stream:MediaStream;kind:string};
 export class Mesh {
- peers=new Map<string,Peer>();profile:SharedProfile={name:'Spieler',photo:'',bio:'',game:''};self='';local=new Map<string,MediaStream>();sounds=new Map<string,Blob>();onChange=()=>{};onSpeaking=()=>{};localSpeaking=false;onChat=(m:Chat)=>{};onError=(s:string)=>{};onSound=(b:Blob)=>{};onReaction=(_id:string,_name:string,_emoji:string)=>{};private localReactionStart=0;private localReactionCount=0;
+ peers=new Map<string,Peer>();profile:SharedProfile={name:'Spieler',photo:'',bio:'',game:''};self='';local=new Map<string,MediaStream>();sounds=new Map<string,Blob>();onChange=()=>{};onSpeaking=()=>{};localSpeaking=false;onChat=(m:Chat)=>{};onError=(s:string)=>{};onSound=(_blob:Blob,_peerId?:string)=>{};onReaction=(_id:string,_name:string,_emoji:string)=>{};private localReactionStart=0;private localReactionCount=0;
  onUpdateChannel=(id:string,name:string,channel:RTCDataChannel)=>{};
  constructor(public settings:Settings){this.profile={name:settings.name||'Spieler',photo:'',bio:settings.profileBio||'',game:settings.favoriteGame||''};}
  transport:(message:{to:string;data:unknown})=>Promise<unknown>=(message)=>window.vox.signal(message);
@@ -75,7 +75,7 @@ export class Mesh {
    p.soundAt=now;
    const delay=Number.isInteger(m.delayMs)&&m.delayMs>=0&&m.delayMs<=500?m.delayMs:m.at-p.offset-now;
    if(delay < -1000||delay>2000)return;
-   setTimeout(()=>{if(this.peers.get(p.id)===p)this.onSound(b);},Math.max(0,delay));
+   setTimeout(()=>{if(this.peers.get(p.id)===p)this.onSound(b,p.id);},Math.max(0,delay));
   }
  }
  sendReaction(emoji:string):boolean{if(!isAllowedReaction(emoji))return false;const now=Date.now();if(now-this.localReactionStart>=3000){this.localReactionStart=now;this.localReactionCount=0;}if(++this.localReactionCount>6)return false;this.broadcast({type:'reaction',emoji});return true;}
