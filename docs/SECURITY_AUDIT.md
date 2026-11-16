@@ -61,3 +61,17 @@ Die ursprüngliche Prüfung vom 11.11.2026 meldete ein moderates minimatch-Advis
 - Releasevorbereitung: Programmversion im Draft-Branch `0.4.0`; keine Signatur- oder Vertrauensumgehung, `main`/installierte Version unverändert.
 - CI erweitert um `pnpm audit --audit-level high` **einschließlich Build-/Dev-Abhängigkeiten**. Beim früheren Lauf 43849225448 wurden zwei Moderate in Dev-Abhängigkeiten gemeldet. Da der Schwellwert High ist, bleibt der Test bei ausbleibenden High/Critical rot nicht; es darf aber nicht behauptet werden, die gesamte Abhängigkeitsliste habe keine Advisories.
 - Neues Restrisiko: Version 2 wurde bislang nur gegen synthetische und simulierte alte SQLite-Datenbanken geprüft. Eine Sicherung und echte Migration einer existierenden Windows-0.3.2-Installation bleiben zwingend vor Freigabe.
+
+## Präzisierung: moderates Advisory in den Buildwerkzeugen (16.11.2026)
+
+Der vertiefte GitHub-Audit nennt exakt [GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249), **minimatch: potenzieller Denial-of-Service bei Glob-Ausdrücken**, zweimal über `electron-builder`:
+- `electron-builder > app-builder-lib > minimatch@10.2.6`;
+- `electron-builder > app-builder-lib > @electron/universal > minimatch@9.0.9`.
+
+Die geprüften Produktivabhängigkeiten melden **keine** bekannten Advisories; beide Befunde betreffen die Entwicklungs-/Paketierungsphase und sind als **moderate** klassifiziert. Der Fix erfordert derzeit den Wechsel auf `minimatch>=11.0.1`. Eine ungeprüfte Major-Override wäre riskant für Windows-Installerpakete und wird erst nach kompatiblem Upstream-Update beziehungsweise gezieltem Packagetest durchgeführt. GitHub-Actions zeigt die Advisory-Details in einem Diagnose-Schritt, während High/Critical weiterhin den Build blockieren.
+
+### Daten- und Updatevertrauen
+
+Das signierte P2P-Updateangebot ist an den aktuellen Raum gebunden. Asynchron beendete Freigabedialoge aus vorherigen Räumen dürfen kein Update an andere Freunde veröffentlichen. Vollständig geprüfte Downloads werden weiterhin **erst nach ausdrücklicher Nutzerentscheidung** zur Installation bereitgestellt.
+
+Vor der ersten v1→v2-Datenbankmigration legt KIZUNA einen transaktional konsistenten SQLite-Snapshot über `VACUUM INTO` im bisherigen `%APPDATA%\\VoxRally`-Verzeichnis an: `voxrally.sqlite.pre-0.4.0-backup`. Existierende Backups werden nicht überschrieben. Eine fehlerhafte Integritäts- oder Versionsprüfung blockiert das Upgrade. Aufgrund persönlicher Daten in Chats und Profilen darf das Backup nicht mit Dritten geteilt werden. **Restore und Datenerhalt auf echter Windows-Installation weiterhin prüfen.**
