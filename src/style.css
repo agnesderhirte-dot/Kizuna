@@ -217,3 +217,7 @@
 .participant-privacy{display:flex;flex-direction:column;gap:4px;margin:6px 0}
 .participant-privacy label{display:flex;align-items:center;gap:7px;font-size:10px;margin:3px 0;line-height:1.4}
 .participant-privacy input[type="checkbox"]{width:auto;margin:0;accent-color:var(--accent)}
+
+
+.quality-copy{display:inline-flex;align-items:center;font-size:10px;padding:7px 12px;margin:0 0 9px;border:1px solid var(--accent);color:var(--accent)}
+.quality-copy:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
