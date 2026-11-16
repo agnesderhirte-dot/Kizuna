@@ -34,3 +34,11 @@ Diese Tests wurden **nicht** vom KI-Assistenten auf den beiden physischen PCs du
 - Signiertes Update inklusive Changelog aus Releasekanal prüfen, Download erst nach Zustimmung, keine Installation während laufender Sitzung.
 - Altdaten (SQLite, Profilfoto, eigene Sounds, Kalender) müssen nach Update unverändert erhalten bleiben.
 - Code-Signing-Zertifikat und echte Windows-Abnahme fehlen aktuell; keine Veröffentlichung/Produktionsfreigabe.
+
+
+## F. Neu: Mitspieler-Audio, Effekte, Diagnose und Bibliothek
+1. Spielsound von Freund A stumm, Voice A an; Voice-Lautstärke A auf 30 % und Freund B auf 100 % stellen. Prüfen, dass Spielsound und Torhymnen weiterhin unabhängig geregelt werden.
+2. Reaktionen von Freund A ausblenden, Reaktionen von B empfangen. Danach Soundboard von A ausblenden und den Ton von B weiterhin hören. UI bei Fokus-/Vollbildansicht prüfen.
+3. Während gleichzeitiger 1440p-Übertragung mehrere Minuten die Diagnosewerte protokollieren; einen technischen Report kopieren und **vor Weitergabe auf Teilnehmernamen prüfen**. Es darf keine unbeabsichtigte Übertragung stattfinden.
+4. Bei absichtlich verschlechtertem Netz mehrere Messintervalle abwarten und sicherstellen, dass der Qualitätsrat nicht bereits bei einem einzelnen Ausreißer erscheint. FPS eines statischen FM-Bilds alleine darf keine Fehlermeldung auslösen.
+5. Sound importieren, entfernen, Löschen abbrechen, Löschen bestätigen; danach prüfen, dass eigene Bilder, Profile und andere Sounds unverändert vorhanden sind.
