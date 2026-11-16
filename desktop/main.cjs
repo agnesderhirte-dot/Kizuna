@@ -53,7 +53,7 @@ else {
  app.on('second-instance',(_e,args)=>{const link=args.find(a=>a.startsWith('voxrally:'));if(link){try{security.invite(link);pendingInvite=link;emit({type:'invite',value:link});}catch{}}win?.show();});
  app.whenReady().then(()=>{
   fs.mkdirSync(path.join(app.getPath('userData'),'assets'),{recursive:true});db=new DatabaseSync(path.join(app.getPath('userData'),'voxrally.sqlite'));
-  db.exec('PRAGMA journal_mode=WAL');migrate(db);
+  db.exec('PRAGMA journal_mode=WAL');migrate(db,path.join(app.getPath('userData'),'voxrally.sqlite.pre-0.4.0-backup'));
   if(!get('identity',null)){const pair=crypto.generateKeyPairSync('ed25519');if(!safeStorage.isEncryptionAvailable())throw Error('Windows Secure Storage nicht verfügbar');set('identity',{publicKey:pair.publicKey.export({type:'spki',format:'pem'}),privateKey:safeStorage.encryptString(pair.privateKey.export({type:'pkcs8',format:'pem'})).toString('base64')});}
   const initial=process.argv.find(a=>a.startsWith('voxrally:'));if(initial){try{security.invite(initial);pendingInvite=initial;}catch{}}
   session.defaultSession.setPermissionRequestHandler((wc,permission,cb,details)=>cb(wc===win?.webContents&&wc.getURL()===page&&details.isMainFrame!==false&&['media','display-capture','fullscreen'].includes(permission)));
