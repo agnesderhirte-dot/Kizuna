@@ -1,6 +1,16 @@
 import type {Chat,Settings} from './types';
 import {isAllowedReaction} from './reactions';
 export type SharedProfile={name:string;photo:string;bio:string;game:string};
+/** Filter signaling input before touching the browser ICE state. */
+export function validIceCandidate(raw:unknown):raw is RTCIceCandidateInit{
+ if(!raw||typeof raw!=='object'||Array.isArray(raw))return false;
+ const c=raw as Record<string,unknown>;
+ return typeof c.candidate==='string'&&c.candidate.length<=8192
+  &&(c.sdpMid==null||(typeof c.sdpMid==='string'&&c.sdpMid.length<=128))
+  &&(c.sdpMLineIndex==null||(Number.isInteger(c.sdpMLineIndex)&&Number(c.sdpMLineIndex)>=0&&Number(c.sdpMLineIndex)<=128))
+  &&(c.usernameFragment==null||(typeof c.usernameFragment==='string'&&c.usernameFragment.length<=256));
+}
+
 type Peer={profile?:SharedProfile;incoming:Promise<void>;retry?:ReturnType<typeof setTimeout>;restarts:number;id:string;name:string;pc:RTCPeerConnection;dc?:RTCDataChannel;updatesDc?:RTCDataChannel;making:boolean;answerPending:boolean;ignore:boolean;candidates:RTCIceCandidateInit[];streams:Map<string,MediaStream>;labels:Record<string,string>;count:number;since:number;chatCount:number;soundAt:number;soundTransferAt:number;soundAck:boolean;readySounds:Set<string>;offeredSounds?:Set<string>;pendingSoundReady:Map<string,{resolve:(ok:boolean)=>void;timeout:ReturnType<typeof setTimeout>}>;offset:number;speaking:boolean;speechTimeout?:ReturnType<typeof setTimeout>;reactionStart:number;reactionCount:number;transfer?:{hash:string;mime:string;size:number;parts:string[];received:number;expires:number}};
 export type Remote={peer:string;name:string;stream:MediaStream;kind:string};
 export class Mesh {
@@ -40,7 +50,7 @@ export class Mesh {
  receive(id:string,data:any):Promise<void>{const p=this.peers.get(id);if(!p)return Promise.resolve();p.incoming=p.incoming.then(()=>this.receiveOrdered(p,data));return p.incoming;}
  async receiveOrdered(p:Peer,data:any){if(this.peers.get(p.id)!==p)return;const pc=p.pc;const id=p.id;
   try{if(data.description){const d=data.description;if(!['offer','answer'].includes(d.type)||typeof d.sdp!=='string'||d.sdp.length>58000)return;const collision=d.type==='offer'&&(p.making||(pc.signalingState!=='stable'&&!p.answerPending));p.ignore=this.self.localeCompare(id)<0&&collision;if(p.ignore)return;p.answerPending=d.type==='answer';await pc.setRemoteDescription(d);p.answerPending=false;for(const c of p.candidates)await pc.addIceCandidate(c);p.candidates=[];if(d.type==='offer'){await pc.setLocalDescription();await this.signal(id,{description:pc.localDescription});}}
-   else if(data.candidate&&!p.ignore){if(pc.remoteDescription)await pc.addIceCandidate(data.candidate);else if(p.candidates.length<128)p.candidates.push(data.candidate);}
+   else if(data.candidate&&!p.ignore&&validIceCandidate(data.candidate)){if(pc.remoteDescription)await pc.addIceCandidate(data.candidate);else if(p.candidates.length<128)p.candidates.push(data.candidate);}
   }catch(e){if(!p.ignore){console.warn('RTC negotiation failed',e instanceof Error?e.name:'Error',pc.signalingState);this.onError('Medienverhandlung fehlgeschlagen. Verbindung wird erneut versucht.');this.recover(p,1000);}}finally{p.answerPending=false;}
  }
  bind(p:Peer,dc:RTCDataChannel){p.dc=dc;dc.bufferedAmountLowThreshold=65536;dc.onopen=()=>{if(this.peers.get(p.id)!==p||p.dc!==dc)return;this.send(p,{type:'labels',labels:this.labels()});this.send(p,{type:'ping',time:Date.now()});this.send(p,{type:'capabilities',soundAck:true});this.send(p,{type:'profile',...this.profile});if(this.localSpeaking)this.send(p,{type:'speaking',active:true});this.onChange();};dc.onmessage=e=>{
