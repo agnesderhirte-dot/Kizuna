@@ -212,3 +212,8 @@
 .participant-voice input[type="range"]{display:block;width:100%;accent-color:var(--accent);padding:0}
 .participant-audio-options>button{font-size:10px}
 @media(max-width:850px){.participant-audio-options{position:fixed;top:auto;left:12px;bottom:85px;max-height:60vh}}
+
+
+.participant-privacy{display:flex;flex-direction:column;gap:4px;margin:6px 0}
+.participant-privacy label{display:flex;align-items:center;gap:7px;font-size:10px;margin:3px 0;line-height:1.4}
+.participant-privacy input[type="checkbox"]{width:auto;margin:0;accent-color:var(--accent)}
