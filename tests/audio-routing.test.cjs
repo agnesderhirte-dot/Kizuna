@@ -14,7 +14,8 @@ test('remote game audio mute is independent of voice and soundboard',()=>{
  assert.ok(app.includes('audio.volume=prefs.current.volume.sound'));
  assert.ok(stage.includes("const playsScreenAudio=!tile.local&&tile.kind==='screen'"));
  assert.ok(stage.includes('muted={!playsScreenAudio||sound.muted}'));
- assert.ok(stage.includes('audio.volume=sound.volume'));
+ assert.ok(stage.includes('ref.current!.volume=sound.volume'));
+ assert.ok(stage.includes('[sound.volume]'));
  assert.ok(stage.includes('aria-pressed={!!screenMuted[t.id]}'));
  assert.ok(stage.includes('OffscreenAudio'));
 });
