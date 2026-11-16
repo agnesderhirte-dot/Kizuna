@@ -50,6 +50,21 @@ test('sound transfer is acknowledged and cached, so second playback skips bytes'
  assert.equal(tx[0].delayMs,160);
  mesh.remove('p1');
 });
+test('an early ready acknowledgement from a pre-cached peer avoids a timeout',async()=>{
+ const {Mesh}=await meshModule;
+ const mesh=new Mesh({});
+ let hash='';
+ const peer={id:'p3',name:'Friend',soundAck:true,readySounds:new Set(),pendingSoundReady:new Map(),count:0,chatCount:0,since:Date.now(),soundAt:0,soundTransferAt:0,reactionStart:0,reactionCount:0,offset:0,pc:{close(){}},dc:{readyState:'open',bufferedAmount:0,send(raw){
+  const data=JSON.parse(raw);
+  if(data.type==='sound-start'){hash=data.hash;void mesh.data(peer,JSON.stringify({v:1,type:'sound-ready',hash}));}
+ }}};
+ mesh.peers.set('p3',peer);
+ const start=Date.now();
+ await mesh.sound(new Blob([new Uint8Array([82,73,70,70])],{type:'audio/wav'}));
+ assert.ok(hash);
+ assert.ok(Date.now()-start<1000,'unnecessary 2.5-second ready timeout');
+ mesh.remove('p3');
+});
 test('receiver honors relative low-latency sound scheduling and reports missing cache',async()=>{
  const {Mesh}=await meshModule;
  const mesh=new Mesh({});
