@@ -121,3 +121,14 @@
 .stream-reaction span{display:block;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @keyframes kizuna-reaction{from{opacity:0;transform:translateY(15px) scale(.9)}to{opacity:1;transform:translateY(0) scale(1)}}
 @media(prefers-reduced-motion:reduce){.stream-reaction{animation:none}}
+
+
+/* Local, consent-driven audio troubleshooting. No background recording. */
+.audio-check{border:1px solid #ffffff25;border-radius:10px;padding:14px;margin:14px 0}
+.audio-check p{margin:8px 0;line-height:1.6}
+.audio-check meter{width:100%;height:18px;accent-color:var(--accent)}
+.audio-check-buttons{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
+.audio-check-buttons button{font-size:11px;padding:7px 10px}
+.audio-check-buttons button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* Network measurements are text only; no extra live graphs/animation. */
+.quality{overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
