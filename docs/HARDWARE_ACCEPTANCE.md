@@ -49,3 +49,11 @@ Diese Tests wurden **nicht** vom KI-Assistenten auf den beiden physischen PCs du
 3. Sprachchat-Lautstärke wiederholt ändern, dabei kontrollieren, dass das Ausgabegerät stabil bleibt und keine zusätzliche Tonunterbrechung auftritt.
 4. Torhymnen mehrfach starten/stoppen, den Raum verlassen und erneut beitreten; URL-/Speicherverbrauch und Funktionalität über eine lange Sitzung beobachten.
 5. Hintergrundbilder rasch wechseln und anschließend Speicher/GUI-Verhalten kontrollieren. Node-Tests sind kein Ersatz für diese UI- und OS-Messungen.
+
+## H. Upgrade v0.3.2 → vorbereitete v0.4.0
+1. **Vorher Sicherung:** `%APPDATA%\\VoxRally` (SQLite-Datei, WAL/SHM, Assets) bei vollständig geschlossenem KIZUNA kopieren; Prüfsumme dokumentieren.
+2. Installierte Altversion starten, Einstellungen, mindestens ein eigenes Bild, Sound, Chatnachricht und Kalendertermin prüfen. Erst dann einen **testweise, sicher signierten** Upgradepfad verwenden.
+3. Danach `PRAGMA user_version=2`, unveränderte Nutzerdaten und Start ohne Schemafehler nachweisen. Das Update darf weder Installations-ID, VoX-Protokollkennungen noch Privatkey-Vertrauen umstellen.
+4. Windows-Mikrofonfreigabe öffnen und **während des OS-Dialogs** den Raum verlassen/wechseln: Die späte Freigabe darf kein Mikrofon und keinen Bildschirm erneut einschalten.
+5. Lokalen Raum hosten, verlassen und prüfen, dass Port 8765 geschlossen ist. Nach erneutem Start muss Hosting wieder möglich sein.
+6. Apps unter Windows 10/11, mit 2 PCs, Audio-/GPU-/Netzwerklast und mindestens einstündiger Sitzung testen. `pnpm build` und Node-Tests alleine sind nicht ausreichend.
