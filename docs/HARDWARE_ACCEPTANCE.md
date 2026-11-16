@@ -42,3 +42,10 @@ Diese Tests wurden **nicht** vom KI-Assistenten auf den beiden physischen PCs du
 3. Während gleichzeitiger 1440p-Übertragung mehrere Minuten die Diagnosewerte protokollieren; einen technischen Report kopieren und **vor Weitergabe auf Teilnehmernamen prüfen**. Es darf keine unbeabsichtigte Übertragung stattfinden.
 4. Bei absichtlich verschlechtertem Netz mehrere Messintervalle abwarten und sicherstellen, dass der Qualitätsrat nicht bereits bei einem einzelnen Ausreißer erscheint. FPS eines statischen FM-Bilds alleine darf keine Fehlermeldung auslösen.
 5. Sound importieren, entfernen, Löschen abbrechen, Löschen bestätigen; danach prüfen, dass eigene Bilder, Profile und andere Sounds unverändert vorhanden sind.
+
+## G. Start-Weisheit und Performance-Kontrolle
+1. Kizuna mehrfach vollständig schließen und neu öffnen: Bei jedem Start genau ein neuer Spruch, nicht unmittelbar derselbe wie beim letzten Start. Layout in mehreren Skins, Licht-/Dunkelmodus und kleinen Fenstern prüfen.
+2. Schließen-Schaltfläche testen; beim Raumeintritt muss die Weisheit ohne Auswirkungen auf die Streams verschwinden.
+3. Sprachchat-Lautstärke wiederholt ändern, dabei kontrollieren, dass das Ausgabegerät stabil bleibt und keine zusätzliche Tonunterbrechung auftritt.
+4. Torhymnen mehrfach starten/stoppen, den Raum verlassen und erneut beitreten; URL-/Speicherverbrauch und Funktionalität über eine lange Sitzung beobachten.
+5. Hintergrundbilder rasch wechseln und anschließend Speicher/GUI-Verhalten kontrollieren. Node-Tests sind kein Ersatz für diese UI- und OS-Messungen.
