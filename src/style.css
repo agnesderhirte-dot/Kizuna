@@ -239,3 +239,15 @@
 .kickoff-wisdom>button{flex:0 0 auto;width:30px;min-height:30px;padding:3px;line-height:1;font-size:20px;background:transparent;color:inherit;opacity:.7;border:1px solid transparent}
 .kickoff-wisdom>button:hover,.kickoff-wisdom>button:focus-visible{opacity:1;border-color:var(--accent)}
 @media(max-width:620px){.kickoff-wisdom{padding:10px 12px}.kickoff-wisdom p{font-size:11px}}
+
+
+/* Fixed-height desktop layout: sidebar content must scroll INSIDE its grid row,
+   never overflow into the bottom media controls. Reproduced by Windows CI. */
+.app>.channels,.app>.rail,.app>.members{
+ min-height:0;
+ overflow-y:auto;
+ overflow-x:hidden;
+ overscroll-behavior:contain;
+ scrollbar-width:thin;
+}
+.app>footer{min-width:0}
