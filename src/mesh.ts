@@ -17,13 +17,13 @@ export class Mesh {
   // A media-only offer can otherwise roll back its data channels in Chromium.
   pc.onnegotiationneeded=async()=>{if(!initiator&&!pc.remoteDescription)return;try{p.making=true;await pc.setLocalDescription();await this.signal(id,{description:pc.localDescription});}catch{this.onError('Medienverhandlung fehlgeschlagen');}finally{p.making=false;}};
   pc.ontrack=e=>{const stream=e.streams[0];if(!stream)return;if(!p.streams.has(stream.id)&&p.streams.size>=8){e.track.stop();return;}p.streams.set(stream.id,stream);stream.onremovetrack=()=>{if(!stream.getTracks().length)p.streams.delete(stream.id);this.onChange();};e.track.onended=()=>this.onChange();this.onChange();};
-  pc.onconnectionstatechange=()=>{this.onChange();console.info('RTC state',pc.connectionState,pc.iceConnectionState);if(pc.connectionState==='connected'){clearTimeout(p.retry);p.retry=undefined;p.restarts=0;}else if(['failed','disconnected'].includes(pc.connectionState))this.recover(p,pc.connectionState==='failed'?1000:5000);};
+  pc.onconnectionstatechange=()=>{this.onChange();console.info('RTC state',pc.connectionState,pc.iceConnectionState);if(pc.connectionState==='connected'){clearTimeout(p.retry);p.retry=undefined;p.restarts=0;void this.bitrate().catch(()=>{});}else if(['failed','disconnected'].includes(pc.connectionState))this.recover(p,pc.connectionState==='failed'?1000:5000);};
   pc.onicecandidateerror=e=>{if(e.errorCode===701)console.warn('ICE server unreachable; no relay route confirmed');};
   this.recover(p,25000);
   pc.ondatachannel=e=>{if(e.channel.label==='voxrally-updates-v1')this.onUpdateChannel(id,name,e.channel);else if(e.channel.label==='voxrally-v1')this.bind(p,e.channel);else e.channel.close();};
   if(initiator){this.bind(p,pc.createDataChannel('voxrally-v1',{ordered:true}));this.onUpdateChannel(id,name,pc.createDataChannel('voxrally-updates-v1',{ordered:true}));}
   for(const stream of this.local.values())for(const track of stream.getTracks())pc.addTrack(track,stream);
-  this.onChange();
+  this.onChange();void this.bitrate().catch(()=>{});
  }
  recover(p:Peer,delay:number){if(p.retry||this.peers.get(p.id)!==p)return;p.retry=setTimeout(()=>{p.retry=undefined;if(this.peers.get(p.id)!==p||['connected','closed'].includes(p.pc.connectionState))return;if(p.restarts++>=3){this.onError('Medienverbindung unterbrochen. Einladung erneut öffnen; falls es wieder scheitert, TURN/VPN und Netzwerk prüfen.');return;}console.warn('RTC ICE restart',p.restarts,p.pc.iceConnectionState);p.pc.restartIce();this.recover(p,15000);},delay);}
  receive(id:string,data:any):Promise<void>{const p=this.peers.get(id);if(!p)return Promise.resolve();p.incoming=p.incoming.then(()=>this.receiveOrdered(p,data));return p.incoming;}
@@ -59,7 +59,7 @@ export class Mesh {
  }
  sendReaction(emoji:string):boolean{if(!isAllowedReaction(emoji))return false;const now=Date.now();if(now-this.localReactionStart>=3000){this.localReactionStart=now;this.localReactionCount=0;}if(++this.localReactionCount>6)return false;this.broadcast({type:'reaction',emoji});return true;}
  setSpeaking(active:boolean){if(this.localSpeaking!==active){this.localSpeaking=active;this.onSpeaking();}this.broadcast({type:'speaking',active});}
- setLocal(kind:string,stream?:MediaStream){if(kind==='voice'&&!stream)this.setSpeaking(false);const old=this.local.get(kind);for(const p of this.peers.values()){if(old)for(const sender of p.pc.getSenders())if(sender.track&&old.getTracks().includes(sender.track))p.pc.removeTrack(sender);if(stream)for(const t of stream.getTracks())p.pc.addTrack(t,stream);}old?.getTracks().forEach(t=>t.stop());if(stream)this.local.set(kind,stream);else this.local.delete(kind);this.broadcast({type:'labels',labels:this.labels()});this.onChange();}
+ setLocal(kind:string,stream?:MediaStream){if(kind==='voice'&&!stream)this.setSpeaking(false);const old=this.local.get(kind);for(const p of this.peers.values()){if(old)for(const sender of p.pc.getSenders())if(sender.track&&old.getTracks().includes(sender.track))p.pc.removeTrack(sender);if(stream)for(const t of stream.getTracks())p.pc.addTrack(t,stream);}old?.getTracks().forEach(t=>t.stop());if(stream)this.local.set(kind,stream);else this.local.delete(kind);this.broadcast({type:'labels',labels:this.labels()});this.onChange();void this.bitrate().catch(()=>{});}
  async bitrate(){for(const p of this.peers.values())for(const sender of p.pc.getSenders()){
  if(sender.track?.kind!=='video')continue;
  const params=sender.getParameters();if(!params.encodings.length)continue;
