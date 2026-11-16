@@ -229,3 +229,13 @@
 .sound-removal-confirm{display:flex;gap:5px;margin-top:7px;flex-wrap:wrap}
 .sound-removal-confirm button{flex:1;min-width:86px;min-height:34px;padding:7px 8px;font-size:10px}
 .sound-removal-confirm button:first-child{border-color:#d08080}
+
+
+/* Startup football wisdom: offline, one per app start, adapted to the active skin. */
+.kickoff-wisdom{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 16px;margin:0 0 14px;border:1px solid color-mix(in srgb,var(--accent) 35%,transparent);border-left:3px solid var(--accent);border-radius:10px;background:color-mix(in srgb,var(--accent) 7%,#151c26);min-width:0}
+.kickoff-wisdom>div{min-width:0}
+.kickoff-wisdom-kicker{display:block;color:var(--accent);font-size:9px;font-weight:750;letter-spacing:.11em}
+.kickoff-wisdom p{font-size:12px;font-weight:500;line-height:1.5;margin:5px 0 0;overflow-wrap:anywhere;color:#f1f4f8}
+.kickoff-wisdom>button{flex:0 0 auto;width:30px;min-height:30px;padding:3px;line-height:1;font-size:20px;background:transparent;color:inherit;opacity:.7;border:1px solid transparent}
+.kickoff-wisdom>button:hover,.kickoff-wisdom>button:focus-visible{opacity:1;border-color:var(--accent)}
+@media(max-width:620px){.kickoff-wisdom{padding:10px 12px}.kickoff-wisdom p{font-size:11px}}
