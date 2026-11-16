@@ -155,7 +155,7 @@ export class Mesh {
  }
  async drain(p:Peer){const start=Date.now();while(p.dc?.readyState==='open'&&p.dc.bufferedAmount>65536){if(Date.now()-start>10000)throw Error('Dateiübertragung zu langsam');await new Promise(r=>setTimeout(r,25));}if(p.dc?.readyState!=='open')throw Error('Peer getrennt');}
  remotes():Remote[]{return [...this.peers.values()].flatMap(p=>[...p.streams.values()].filter(s=>s.getTracks().some(t=>t.readyState==='live')).map(stream=>({peer:p.id,name:p.name,stream,kind:p.labels[stream.id]||'media'})));}
- remove(id:string){const p=this.peers.get(id);clearTimeout(p?.retry);clearTimeout(p?.speechTimeout);p?.dc?.close();p?.updatesDc?.close();p?.streams.clear();p?.readySounds.clear();p?.offeredSounds?.clear();p?.transfer&&(p.transfer=undefined);if(p?.pendingSoundReady)for(const item of p.pendingSoundReady.values()){clearTimeout(item.timeout);item.resolve(false);}p?.pendingSoundReady?.clear();p?.pc.close();this.peers.delete(id);this.onChange();}
+ remove(id:string){const p=this.peers.get(id);clearTimeout(p?.retry);clearTimeout(p?.speechTimeout);p?.dc?.close?.();p?.updatesDc?.close?.();p?.streams?.clear();p?.readySounds?.clear();p?.offeredSounds?.clear();p?.transfer&&(p.transfer=undefined);if(p?.pendingSoundReady)for(const item of p.pendingSoundReady.values()){clearTimeout(item.timeout);item.resolve(false);}p?.pendingSoundReady?.clear();p?.pc.close();this.peers.delete(id);this.onChange();}
  clear(){for(const id of this.peers.keys())this.remove(id);this.self='';}
  close(){this.setSpeaking(false);for(const timer of this.playbackTimers)clearTimeout(timer);this.playbackTimers.clear();this.clear();for(const s of this.local.values())s.getTracks().forEach(t=>t.stop());this.local.clear();this.sounds.clear();}
 }
