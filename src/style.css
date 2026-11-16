@@ -184,3 +184,15 @@
 .profile-panel>p{font-size:11px;line-height:1.5}
 .members .avatar{overflow:hidden}
 .tile-avatar{display:inline-block;width:20px;height:20px;border-radius:50%;vertical-align:middle;margin-right:7px;border:1px solid #ffffff70}
+
+
+/* Emoji catalog is mounted only while open; lightweight local favorites. */
+.reaction-filters{display:flex;align-items:center;gap:7px;margin-bottom:9px}
+.reaction-filters input{flex:1;min-width:0;font-size:11px;padding:8px}
+.reaction-filters button{flex:0 0 auto;font-size:10px}
+.reaction-choice{position:relative;min-width:0;display:block}
+.reaction-choice .reaction-send{display:block;width:100%;height:44px;padding:3px 5px 12px;overflow-wrap:anywhere}
+.reaction-choice .reaction-star{position:absolute;bottom:0;right:0;font-size:11px;width:19px;min-height:17px;padding:0;border:0;background:#0005;color:#ffe19c}
+.reaction-choice .reaction-star[aria-pressed="true"]{color:#ffda68}
+.reaction-choice .reaction-star:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.reaction-menu>small{font-size:9px}
