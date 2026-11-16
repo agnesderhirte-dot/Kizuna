@@ -40,3 +40,26 @@ Commit, betroffene Dateien, Status der Roadmap, nachweislich ausgeführte Tests 
 - **Build + Unit-Tests grün**: Run https://github.com/agnesderhirte-dot/Kizuna/actions/runs/43817017128, Commit `f496c99084580b2fc7fcdc863bc19d86025b20db`. 34 erfolgreich, 0 fehlgeschlagen, 1 übersprungen.
 - **Nicht getestet:** Reale Sprachlatenz, Kombination mit mehreren Windows-Ausgabegeräten, verschiedene Netzwerke, Soundboard unter hoher Last, Video-Ton-Lippensynchronität auf zwei echten PCs. Kein produktives Update, Installer oder Merge.
 - **Nächster Schritt:** Auf zwei Windows-PCs im gleichen Raum FM-Stream mit Systemaudio starten; bei einem Nutzer Spielsound stummschalten, während Voice und Torjubel hörbar bleiben; Jitter, Puffer und RTT unter Netzwerklast messen und mit Baseline vergleichen. Danach Qualitätsabnahme 1440p60.
+
+## 2026-11-16 – Direkte GitHub-Entwicklung ohne Codex-Sitzung
+
+### Fertig im Entwicklungsbranch, Build- und Unit-Abnahme
+- **KZ-008 Profile**: Gespeicherte Profilbilder werden auf 96×96 Pixel zugeschnitten, als kompaktes JPEG lokal in der vorhandenen Asset-Bibliothek abgelegt und über den bestehenden P2P-Datenkanal an verbundene Nutzer gesendet. Der Peer akzeptiert nur streng begrenzte JPEG-Daten-URIs. Lieblingsspiel, Bio und Spielername sind vorhanden; Entwürfe werden erst nach Speichern geteilt.
+- **KZ-010 Kalender**: `desktop/calendar.cjs`, `src/GameCalendar.tsx`, SQLite-Tabelle, Wiederholung, Erinnerungen während KIZUNA läuft, Terminliste/Monatsansicht, ICS mit `Europe/Berlin`-Sommerzeit, Export über nativen Speicherdialog.
+- **KZ-011 Terminweitergabe**: `mailto:`- und WhatsApp-Web-Entwürfe ausschließlich nach bewusstem Nutzerklick; kein automatischer Versand, kein kostenpflichtiger Dienst.
+- **KZ-007 Originalsounds**: `desktop/bundled-sounds.cjs` erzeugt Anpfiff, Tor-Signal und künstlichen Stadionapplaus, ohne fremde Musik oder Downloads. Erst nach Nutzeraktion importieren, doppelte Assets vermeiden.
+- **KZ-004 Reaktionen**: über 100 Unicode-Emojis in Fußball/Stadion, Jubel, Gesichter, Gaming, dazu speicherbare Favoriten mit Suchfeld; nur bei geöffnetem Menü gerendert.
+- **KZ-012 Update-Vorbereitung**: Zentrale Updateabfrage kann – **wenn produktiv signiert und aktiviert** – harmlose, begrenzte Releasebeschreibungen vor dem Download anzeigen. Der zentrale Updater bleibt wegen fehlender Publisher-/Zertifikatskonfiguration deaktiviert.
+- **Tests**: `tests/calendar.test.cjs`, `tests/profile.test.cjs`, `tests/bundled-sounds.test.cjs`, `tests/reaction-favorites.test.cjs`, ergänzter `tests/central-updater.test.cjs`. Stand letzter vollständig ausgeführter Prüfung: https://github.com/agnesderhirte-dot/Kizuna/actions/runs/43820759138 (**51 bestanden, 0 fehlgeschlagen, 1 übersprungen**). Neuere Commits erneut überprüfen.
+
+### Sicherheit und Abgrenzung
+- Weder `main` noch reale KIZUNA-Installationen wurden geändert; keine Releaseveröffentlichung, kein automatischer Push an Mitspieler.
+- Keine zusätzlichen Runtime-Bibliotheken, keine Cloud-Profilanbieter, kein externer Musikdienst, keine kommerziellen WhatsApp-Kosten.
+- Echte Windows-Betriebs-/Mikrofon-/End-to-End-Latenztests, längerer Zwei-PC-Livebetrieb und sichere signierte Releasekette bleiben offen; diese Punkte sind keine reine Quellcodeaufgabe.
+- Die lokalen Windows-Erinnerungen funktionieren **nur bei geöffnetem KIZUNA**. Termine können für Erinnerungen außerhalb von KIZUNA per ICS in einen anderen Kalender exportiert werden.
+- Testanleitung: `docs/HARDWARE_ACCEPTANCE.md`. Soundherkunft: `docs/SOUND_SOURCES.md`.
+
+### Empfehlung zur Fortsetzung
+1. Prüfe den aktuellsten GitHub-CI-Lauf für den neueren SHA; auftretende Fehler vor weiteren Features beheben.
+2. Reale Zwei-PC-Abnahme: Tontrennung, Profilübertragung, Skinwechsel, Reaktionen, Updateverhalten, 1440p60 und Tonlatenz.
+3. Nach bestandener Abnahme Freigabe des Merge und signiertes Update-Paket vorbereiten; keine Signatur- oder Freigabeprüfungen umgehen.
