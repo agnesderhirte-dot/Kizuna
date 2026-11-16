@@ -221,3 +221,11 @@
 
 .quality-copy{display:inline-flex;align-items:center;font-size:10px;padding:7px 12px;margin:0 0 9px;border:1px solid var(--accent);color:var(--accent)}
 .quality-copy:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+
+.sound-library-card{min-width:0;border:1px solid #ffffff22;border-radius:10px;padding:7px;background:#131b25b5}
+.sound-library-card>button:first-child{width:100%;min-height:94px;text-align:center}
+.sound-library-card .sound-remove-button{width:100%;min-height:30px;padding:7px 10px;margin-top:6px;font-size:10px;opacity:.86}
+.sound-removal-confirm{display:flex;gap:5px;margin-top:7px;flex-wrap:wrap}
+.sound-removal-confirm button{flex:1;min-width:86px;min-height:34px;padding:7px 8px;font-size:10px}
+.sound-removal-confirm button:first-child{border-color:#d08080}
