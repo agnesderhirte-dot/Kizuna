@@ -1,12 +1,27 @@
 /** Versioned, transactional migrations preserve data across automatic application updates. */
 const calendar=require('./calendar.cjs');
 const SCHEMA_VERSION=2;
+const SCHEMA={
+ kv:['key','value'],
+ assets:['id','name','kind','mime'],
+ messages:['id','room','sender','name','text','time'],
+ game_sessions:['id','title','game','startsAt','durationMin','reminderMin','repeat','notes','participants','notifiedOccurrence']
+};
+function verifySchema(db){
+ for(const [table,columns] of Object.entries(SCHEMA)){
+  const entry=db.prepare("SELECT type FROM sqlite_master WHERE name=?").get(table);
+  if(entry?.type!=='table')throw Error('Datenbankschema beschädigt: '+table);
+  const available=new Set(db.prepare('PRAGMA table_info('+table+')').all().map(col=>col.name));
+  if(columns.some(column=>!available.has(column)))throw Error('Datenbankspalten fehlen: '+table);
+ }
+}
+
 function migrate(db){
  const raw=db.prepare('PRAGMA user_version').get();
  const current=raw?.user_version;
  if(!Number.isInteger(current)||current<0||current>SCHEMA_VERSION)
   throw Error('Unbekannte oder neuere KIZUNA-Datenbankversion; keine Änderung vorgenommen.');
- if(current===SCHEMA_VERSION)return current;
+ if(current===SCHEMA_VERSION){verifySchema(db);return current;}
  db.exec('BEGIN IMMEDIATE');
  try{
   // The 0.3.2 database was version 1. CREATE IF NOT EXISTS preserves those records.
@@ -16,6 +31,7 @@ function migrate(db){
    db.exec("CREATE TABLE IF NOT EXISTS messages(id TEXT NOT NULL,room TEXT NOT NULL,sender TEXT NOT NULL,name TEXT NOT NULL,text TEXT NOT NULL,time INTEGER NOT NULL,PRIMARY KEY(room,id))");
   }
   if(current<2)calendar.setup(db);
+  verifySchema(db);
   // Migrations must update this only after every schema change succeeded.
   db.exec('PRAGMA user_version='+SCHEMA_VERSION);
   db.exec('COMMIT');
