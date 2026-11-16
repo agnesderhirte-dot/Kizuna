@@ -75,7 +75,7 @@ test('secure Electron wiring and UI exist and are opt-in',()=>{
  const preload=fs.readFileSync(path.join(__dirname,'../desktop/preload.cjs'),'utf8');
  const app=fs.readFileSync(path.join(__dirname,'../src/main.tsx'),'utf8');
  const ui=fs.readFileSync(path.join(__dirname,'../src/GameCalendar.tsx'),'utf8');
- assert.ok(main.includes("calendar.setup(db)"));
+ assert.ok(main.includes('migrate(db)'));
  assert.ok(main.includes("handle('saveSession'"));
  assert.ok(main.includes("calendar.remindersDue(db)"));
  assert.ok(main.includes("dialog.showSaveDialog(win"));
