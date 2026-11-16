@@ -1,7 +1,7 @@
 const {Notification,app,BrowserWindow,ipcMain,session,desktopCapturer,dialog,safeStorage,shell,clipboard,globalShortcut}=require('electron');
 const path=require('node:path');const fs=require('node:fs');const crypto=require('node:crypto');const os=require('node:os');const {pathToFileURL}=require('node:url');
 const {DatabaseSync}=require('node:sqlite');const {WebSocket}=require('ws');const {z}=require('zod');
-const security=require('./security.cjs');const calendar=require('./calendar.cjs');const builtinSounds=require('./bundled-sounds.cjs');const {createSignaling}=require('./signaling.cjs');
+const security=require('./security.cjs');const calendar=require('./calendar.cjs');const {verifyImage}=require('./image-limits.cjs');const builtinSounds=require('./bundled-sounds.cjs');const {createSignaling}=require('./signaling.cjs');
 app.setPath('userData',process.env.VOXRALLY_TEST_DATA?path.resolve(process.env.VOXRALLY_TEST_DATA):path.join(app.getPath('appData'),'VoxRally'));
 app.setName('KIZUNA');
 let mediaActive=true,win,db,server,socket,pendingCapture,activeRoom,activeInvite,pendingInvite,retryTimer,calendarTimer,connectionSpec,retryCount=0;
@@ -15,6 +15,7 @@ function storedSettings(){const s={...defaults,...get('settings',{})};if(s.turnP
 function assetFile(id){if(!/^[0-9a-f]{64}$/.test(id))throw Error('Asset-ID');return path.join(app.getPath('userData'),'assets',id);}
 function assetInfo(buffer,kind){
  if(kind==='avatar'){
+  verifyImage(buffer,kind);
   const {nativeImage}=require('electron');
   const decoded=nativeImage.createFromBuffer(buffer);
   if(decoded.isEmpty())throw Error('Profilbild ist nicht lesbar');
@@ -28,6 +29,7 @@ function assetInfo(buffer,kind){
   return {bytes:output,mime:'image/jpeg'};
  }
  if(kind==='background'||kind==='emoji'){
+  verifyImage(buffer,kind);
   const {nativeImage}=require('electron');const decoded=nativeImage.createFromBuffer(buffer);if(decoded.isEmpty())throw Error('Bild konnte nicht dekodiert werden');const size=decoded.getSize();if(size.width>8192||size.height>8192)throw Error('Bild maximal 8192 × 8192');return {bytes:decoded.toPNG(),mime:'image/png'};
  }
  const h=buffer.subarray(0,16);let mime;
