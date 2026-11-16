@@ -7,7 +7,7 @@ const h=n=>n.toString(16).padStart(64,'0');
 test('a malicious peer cannot fill the acknowledged sound cache with unoffered hashes',async()=>{
  const {Mesh}=await meshModule;
  const m=new Mesh({});
- const peer={id:'peer1',name:'Friend',count:0,chatCount:0,since:Date.now(),readySounds:new Set(),offeredSounds:new Set(),pendingSoundReady:new Map()};
+ const peer={id:'peer1',name:'Friend',count:0,chatCount:0,since:Date.now(),readySounds:new Set(),offeredSounds:new Set(),pendingSoundReady:new Map(),pc:{close(){}}};
  m.peers.set(peer.id,peer);
  for(let i=1;i<=50;i++)await m.data(peer,JSON.stringify({v:1,type:'sound-ready',hash:h(i)}));
  assert.equal(peer.readySounds.size,0);
@@ -22,7 +22,7 @@ test('duplicate KIZUNA message/update channels are rejected for a connected peer
  const {Mesh}=await meshModule;
  class FakePC{
   connectionState='new';signalingState='stable';remoteDescription=null;
-  createDataChannel(label){return {label,readyState:'open',bufferedAmount:0,close(){this.readyState='closed';}};}
+  createDataChannel(label){return {label,readyState:'open',bufferedAmount:0,send(){},close(){this.readyState='closed';}};}
   getSenders(){return [];}addTrack(){}close(){this.connectionState='closed';}restartIce(){}
  }
  global.RTCPeerConnection=FakePC;
@@ -47,7 +47,7 @@ test('closed peers ignore late callbacks; closing session discards caches and sc
  const {Mesh}=await meshModule;
  class FakePC{
   connectionState='new';signalingState='stable';
-  createDataChannel(label){return {label,readyState:'open',close(){this.readyState='closed';}};}
+  createDataChannel(label){return {label,readyState:'open',bufferedAmount:0,send(){},close(){this.readyState='closed';}};}
   getSenders(){return [];}addTrack(){}close(){this.connectionState='closed';}restartIce(){}
  }
  global.RTCPeerConnection=FakePC;
