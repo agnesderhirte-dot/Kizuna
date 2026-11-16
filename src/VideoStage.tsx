@@ -1,6 +1,6 @@
 import {type ReactNode,useEffect,useRef,useState} from 'react';
 import type {StreamReaction} from './reactions';
-export type VideoTile={id:string;name:string;kind:string;local:boolean;stream:MediaStream;speaking:boolean};
+export type VideoTile={id:string;name:string;kind:string;local:boolean;stream:MediaStream;speaking:boolean;avatar?:string};
 type ScreenSound={volume:number;muted:boolean;output:string;onError:(message:string)=>void};
 function configureOutput(element:HTMLMediaElement,output:string,onError:(message:string)=>void){
  if('setSinkId'in element)void element.setSinkId(output||'default').catch(e=>onError('Spielsound: Ausgabegerät nicht verfügbar: '+String(e)));
@@ -10,7 +10,7 @@ function Video({tile,sound}:{tile:VideoTile;sound:ScreenSound}){
  const playsScreenAudio=!tile.local&&tile.kind==='screen';
  useEffect(()=>{const video=ref.current!;video.srcObject=tile.stream;void video.play().catch(e=>sound.onError('Stream-Wiedergabe fehlgeschlagen: '+String(e)));return()=>{video.pause();video.srcObject=null;};},[tile.stream,sound.onError]);
  useEffect(()=>{const video=ref.current!;video.volume=sound.volume;if(playsScreenAudio)configureOutput(video,sound.output,sound.onError);},[sound.volume,sound.output,sound.onError,playsScreenAudio]);
- return <><video ref={ref} autoPlay playsInline muted={!playsScreenAudio||sound.muted}/><figcaption>{tile.name} · {tile.kind==='screen'?'Bildschirm':tile.kind==='camera'?'Kamera':'Video'}</figcaption></>;
+ return <><video ref={ref} autoPlay playsInline muted={!playsScreenAudio||sound.muted}/><figcaption>{tile.avatar&&<img className="tile-avatar" src={tile.avatar} alt=""/>}{tile.name} · {tile.kind==='screen'?'Bildschirm':tile.kind==='camera'?'Kamera':'Video'}</figcaption></>;
 }
 function OffscreenAudio({tile,sound}:{tile:VideoTile;sound:ScreenSound}){
  const ref=useRef<HTMLAudioElement>(null);
