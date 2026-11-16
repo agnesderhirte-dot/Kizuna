@@ -14,8 +14,8 @@ export class QualityAdvisor{
    const bad=(q.audioLossPct!==undefined&&q.audioLossPct>=4)||(q.audioPlayoutBufferMs!==undefined&&q.audioPlayoutBufferMs>=150);
    next.audio=bad?Math.min(3,next.audio+1):0;
   }
-  if(hasVideo)next.video=q.videoLossPct!>=5?Math.min(3,next.video+1):0;
-  if(hasLatency)next.latency=q.roundTripMs!>=250?Math.min(3,next.latency+1):0;
+  if(hasVideo)next.video=(q.videoLossPct!==undefined&&q.videoLossPct>=5)?Math.min(3,next.video+1):0;
+  if(hasLatency)next.latency=(q.roundTripMs!==undefined&&q.roundTripMs>=250)?Math.min(3,next.latency+1):0;
   this.counts.set(peerId,next);
   if(next.audio>=3)return 'Audio wiederholt gestört: Ausgabegerät prüfen, andere Uploads pausieren und Verbindung testen.';
   if(next.video>=3)return 'Videopakete gehen wiederholt verloren: geringere Bitrate oder 1080p-Profil testen.';
