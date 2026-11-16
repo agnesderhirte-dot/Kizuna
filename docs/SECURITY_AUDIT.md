@@ -1,29 +1,54 @@
-# Security audit — provisional
+# KIZUNA – Sicherheitsprüfung (vorläufig, kein unabhängiges Pentest-Gutachten)
 
-This is an implementation review, not an independent audit. Stable release: BLOCKED.
+**Stand:** 16.11.2026 · Ausgangsversion 0.3.2 · Entwicklungsbranch `feat/retro-modern-skins` · Draft PR #1.
 
-| Control | Status | Evidence / limit |
+**Release-Freigabe: WEITERHIN GESPERRT.** Dieser Bericht beschreibt eine Quellcodeprüfung und automatisierte Tests. Er ist kein Beleg für vollständige Sicherheit, reale Windows-Stabilität oder eine signierte Releasekette.
+
+## Automatisierter Prüfstand
+
+- Letzter verifizierter GitHub-Actions-Lauf: [43828763644](https://github.com/agnesderhirte-dot/Kizuna/actions/runs/43828763644), Commit `f61ec2a953ab41fc6c40ef0187ce9f642e0047d3`.
+- `pnpm build` (TypeScript/Vite): **bestanden**.
+- `pnpm test`: **74 bestanden, 0 fehlgeschlagen, 1 übersprungen**.
+- `pnpm audit --prod --audit-level high`: **bestanden**, aktuell *No known vulnerabilities found* bei den geprüften Laufzeitabhängigkeiten. Keine Garantie für alle unbekannten Schwachstellen.
+- Das `pnpm audit` läuft künftig automatisch für Pull Requests. Entwicklungs-/Buildabhängigkeiten sind damit **nicht** vollständig abgedeckt; der ältere Hinweis auf ein moderates minimatch-Problem in Entwicklungstools aus 11/2026 bleibt bis zu einem gesonderten Scan historisch vermerkt.
+
+## Technische Kontrollen und aktueller Stand
+
+| Risiko / Grenze | Stand | Nachweis und Einschränkung |
 |---|---|---|
-| contextIsolation / sandbox / no Node renderer | PASS | BrowserWindow settings |
-| webSecurity / no insecure mixed content | PASS | Explicit settings |
-| IPC sender and schema validation | PASS | Main-frame + exact URL; invalid-settings/path tests |
-| exhaustive unauthorized-frame IPC tests | FAIL | Not yet tested |
-| local scripts and no eval | PASS | Bundled Vite build and CSP |
-| navigation, new window, webview restrictions | PASS | Handlers block all |
-| external links | PASS | Explicit IPC; HTTPS only |
-| media permissions | PASS | App frame only; explicit UI controls and source picker |
-| chat XSS | PASS | Literal malicious HTML rendered as text in desktop test |
-| invite parsing | PASS | Schema, length, token, query and URL tests |
-| server room admission | PASS | Unauthorized creation/wrong-token/capacity tests |
-| stable authenticated peer identity | FAIL | Local key exists; not bound to handshake |
-| LAN signaling confidentiality | FAIL | Plaintext ws; trusted LAN/VPN only |
-| public TLS | PASS | Public ws rejected; wss certificates validated |
-| file import | PASS | Size, signature/decode, generated file paths; fuzzing outstanding |
-| dependency scan | PASS with note | 0 High, 0 Critical; 1 Moderate build-only minimatch advisory |
-| automated updater | NOT APPLICABLE | Not implemented |
-| code signing | FAIL | No signing certificate; unsigned development build |
-| long session / physical two-PC review | FAIL | Not yet performed |
+| Renderer-Sandbox, IPC-Isolation, Navigationsschutz | Bereits zuvor implementiert; Stichprobenprüfung | Electron `BrowserWindow` und IPC-Senderprüfung; umfassende bösartige Frame-Tests noch offen |
+| Raum-/Einladungszugriff | Unit-/Integrationstests | Geheimnis-, Raumgrößen- und Signalingtests; kein durchgängiger Nachweis dauerhafter Identität |
+| Ungeprüfte ICE-Kandidaten | Verbessert, getestet | `validIceCandidate`: Format-/Längen-/Typgrenzen, bevor Browser-ICE APIs aufgerufen werden |
+| Doppelte WebRTC-Datenkanäle | Verbessert, getestet | Je Peer genau ein aktiver Nachrichten- und Updatekanal; weitere Kanäle schließen |
+| Gefälschte Sound-Cache-Bestätigungen | Verbessert, getestet | ACK nur für tatsächlich diesem Peer angebotene Hashes, maximal 32 Cache-Einträge |
+| Speicher bei Peer-Ausstieg | Verbessert, getestet | Channels, Sound-Transfers, Puffer, gecachte Sounds und geplante Wiedergaben werden aufgeräumt |
+| Cloud-Signalisierung: Nachrichtenschlangen | Verbessert, getestet | Grenzwerte für Eingangsbytes, wartende Empfangsdaten und ausgehende Nachrichten; veraltete Link-Nachrichten werden ignoriert |
+| Cloud-Signalisierung: Vertraulichkeit und Replay | Bereits vorhanden | AES-GCM über Einladungsgeheimnis, Sequenznummern; aktive Angriffs-/Fuzztests weiter offen |
+| Lokaler LAN-Signaling-Traffic | **Offenes Risiko** | `ws://` ist im vertrauenswürdigen LAN/VPN möglich und dort nicht transportverschlüsselt; öffentliche Netze verlangen `wss://` |
+| Profilbilder/Hintergrunddateien: Dekompressionslast | Verbessert, getestet | PNG/JPEG/GIF/WebP-Abmessungen und Pixelbudget vor `nativeImage`-Dekodierung prüfen; Decoder-Fuzzing nicht durchgeführt |
+| Vertrauliche lokale Zugangsdaten | Vorhandene Implementierung | `safeStorage` auf Windows; Schutz gegen lokalen Malwarezugriff oder kompromittierten Prozess nicht garantiert |
+| Soundboard-/Chat-Eingaben | Teilweise getestet | Nachrichtenlängen, Hashes, Peer-Limits, Audio-Dateiobergrenzen, React-Escaping |
+| Zentrale automatische Updates | **Vorbereitet, nicht produktiv** | Updatecode und Changelog-Dialog existieren; signierte Publisher-Identität und realer Upgrade-Nachweis fehlen |
+| Windows-Codesignatur | **BLOCKIERT** | Kein produktiv eingerichtetes vertrauenswürdiges Publisher-Zertifikat |
+| Zwei-PC-/Netzwerk-/Audio-Langzeittest | **OFFEN** | Wird für vollständige Release-Abnahme ausdrücklich benötigt |
+| Unabhängige Abschlussprüfung/Pentest | **OFFEN** | Dieser Bericht ist nur die erste interne, quellcodegestützte Audit-Runde |
 
-Dependency audit 2026-11-11: GHSA-g3hv-75wg-m249, moderate minimatch glob amplification in electron-builder development dependencies. No runtime advisory reported by this scan. Fixed minimatch range is >=11.0.1; avoid a blind major override until builder compatibility is verified. Full machine-readable evidence: test-results/dependency-audit.json (local QA output).
+## Besonders relevante Restrisiken vor einem öffentlichen Release
 
-Resolved during implementation: WebRTC descriptions lost properties crossing Electron IPC, preventing negotiation; serialize explicit type/sdp. Build failed due to an unnecessary CSS data import; removed. Installer NSIS includes exceeded Windows path length; use a short temporary drive mapping for the build.
+1. **Authentifizierte Peer-Identität:** Der Einladungszugriff ist nicht gleichbedeutend mit einer kryptografisch dauerhaft bestätigten Benutzeridentität. Ein vertrauenswürdiger Peer-/Host-Namensnachweis muss erst entwickelt und getestet werden.
+2. **LAN-Signaling ohne TLS:** Bei lokalen `ws://`-Servern können Signaling-Metadaten im ungeschützten Netzwerk beobachtet werden. Nutzung nur in vertrauenswürdigen Netzen oder geeigneter gesicherter Infrastruktur.
+3. **Echte Windows- und Hardwareleistung:** Einheitstests belegen nicht, dass Mikrofon, 1440p60, beide gleichzeitigen Streams oder Spielsound unter Netzwerklast einwandfrei funktionieren.
+4. **Update-Vertrauensbasis:** Weder Publisher-Zertifikat noch reproduzierbarer signierter Upgrade-Test aus einer installierten Altversion liegen vor. Bestehende Schlüssel und `de.voxrally.desktop`/`voxrally://`-Kennungen ohne verifizierte Migration nicht verändern.
+5. **Import-Fuzzing:** Vorab-Prüfungen reduzieren Dekompressionsrisiken, ersetzen aber keine Prüfung des eigentlichen OS-Decoders auf fehlerhafte oder mutierte Dateien.
+6. **Dependency-Scan:** Laufzeit-Abhängigkeiten sind ohne bekannte High/Critical-Meldungen; Entwicklungstools und neu entstehende Advisories müssen getrennt überwacht werden.
+
+## Ausstehende Schritte nach Masterprompt
+
+- Testmatrix `docs/HARDWARE_ACCEPTANCE.md` auf zwei echten Windows-Rechnern absolvieren.
+- Kritische Peer-Authentifizierung, unerwartete Verbindungsabbrüche und sichere Wiederherstellung unabhängig prüfen.
+- Signierte Updatekette und Datenerhalt bei realer Installation testen; erst danach Freigabe erfragen.
+- Abschließendes Audit mit hohem Denkaufwand und erneuter Regression **nach** der Hardwareabnahme.
+
+## Historischer Befund
+
+Die ursprüngliche Prüfung vom 11.11.2026 meldete ein moderates minimatch-Advisory (GHSA-g3hv-75wg-m249) bei einem Entwicklungswerkzeug; dieser Befund ist **nicht** gleichbedeutend mit einem aktuell bekannten kritischen Laufzeitfehler. Der aktuelle Runtime-Audit vom 16.11.2026 hat keine bekannten Sicherheitslücken gemeldet. Ältere Aussagen „automatischer Updater nicht implementiert“ sind überholt: Der zentrale Updater existiert, ist aber aus Sicherheitsgründen nicht produktiv aktiviert.
