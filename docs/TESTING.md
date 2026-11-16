@@ -28,3 +28,9 @@ Required before stable release:
 9. Complete malicious peer/IPC/file/security test matrix and separate adversarial review.
 
 Not implemented: roles/private channels/friends; persistent room ownership and revocation; stream scenes; custom emoji transport/reactions; general file transfer; full chat history sync/edit/delete/reply; Stream Deck plugin/LAN remote; global hold-to-talk; automatic quality controller; backup export. These are not accepted merely because related UI controls or foundational APIs exist.
+
+
+## Ergänzung Spielsound / Audio-Latenz – 16.11.2026
+- Unit/Build GitHub Actions: https://github.com/agnesderhirte-dot/Kizuna/actions/runs/43817017128 (34 bestanden, 0 fehlgeschlagen, 1 übersprungen).
+- Reale Abnahme erforderlich: Remote-Screen-Audio in 2/4-Gitter und Fokus/Vollbild; Spielsound für Remote A aus, Remote B an; Voice A/B und Torhymnen hörbar; Output-Gerät wechseln; Netzwerklatenz unter Last; erstmaliger und wiederholter Soundsync; 3- und 4-Personen-Raum.
+- `jitterBufferDelay / jitterBufferEmittedCount` zeigt gepufferte Wiedergabe nur als Intervall-Schätzung, nicht als gemessene Ende-zu-Ende-Latenz. Unterbrochene Audio-Streams müssen wieder aufnehmen; keine Mehrfachwiedergabe.
