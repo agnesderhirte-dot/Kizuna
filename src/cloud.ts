@@ -1,7 +1,7 @@
 import Peer,{type DataConnection} from 'peerjs';
 import type {Settings} from './types';
 export type CloudSpec={room:string;token:string;self:string;host:string;name:string};
-type Link={connection:DataConnection;nonce:string;ready:boolean;name:string;sent:number;received:number;queue:Promise<void>;incoming:Promise<void>;count:number;since:number;timeout:ReturnType<typeof setTimeout>};
+type Link={connection:DataConnection;nonce:string;ready:boolean;name:string;sent:number;received:number;queue:Promise<void>;incoming:Promise<void>;count:number;since:number;totalBytes:number;pendingBytes:number;outboundQueued:number;timeout:ReturnType<typeof setTimeout>};
 const encoder=new TextEncoder(),decoder=new TextDecoder();
 const base64=(b:Uint8Array)=>btoa(String.fromCharCode(...b));
 const bytes=(s:string)=>Uint8Array.from(atob(s),x=>x.charCodeAt(0));
@@ -20,15 +20,45 @@ export class CloudRoom {
  retryHost(){if(this.closed||this.retry||this.spec.self===this.spec.host)return;if(this.attempt>=5){this.event({type:'error',message:'Gastgeber nicht erreichbar. Erneut beitreten; bei blockierter direkter Verbindung ist ein TURN-Zugang oder VPN erforderlich.'});return;}this.event({type:'disconnected'});this.retry=setTimeout(()=>{this.retry=undefined;this.connectHost();},Math.min(15000,1000*2**this.attempt++));}
  cleanUnopened(link:Link){if(this.links.get(link.connection.peer)!==link)return;clearTimeout(link.timeout);this.links.delete(link.connection.peer);if(this.spec.self!==this.spec.host)this.retryHost();}
  bind(connection:DataConnection){
-  const link:Link={connection,nonce:'',ready:false,name:'',sent:0,received:0,queue:Promise.resolve(),incoming:Promise.resolve(),count:0,since:Date.now(),timeout:setTimeout(()=>{console.warn("Cloud handshake timeout");connection.close();this.cleanUnopened(link);},20000)};
+  const link:Link={connection,nonce:'',ready:false,name:'',sent:0,received:0,queue:Promise.resolve(),incoming:Promise.resolve(),count:0,since:Date.now(),totalBytes:0,pendingBytes:0,outboundQueued:0,timeout:setTimeout(()=>{console.warn("Cloud handshake timeout");connection.close();this.cleanUnopened(link);},20000)};
   this.links.set(connection.peer,link);
   connection.on('open',()=>{if(this.spec.self===this.spec.host){link.nonce=crypto.randomUUID();this.send(link,{type:'challenge',nonce:link.nonce});}});
-  connection.on('data',raw=>{if(typeof raw!=='string'||raw.length>110000){console.warn("Cloud payload limit");connection.close();return;}if(Date.now()-link.since>10000){link.since=Date.now();link.count=0;}if(++link.count>600){console.warn("Cloud rate limit");connection.close();return;}link.incoming=link.incoming.then(()=>this.receive(link,raw)) .catch(e=>{console.warn("Cloud receive rejected:",String(e));connection.close();});});
+  connection.on('data',raw=>{
+   if(typeof raw!=='string'||raw.length>110000){console.warn('Cloud payload limit');connection.close();return;}
+   if(this.closed||this.links.get(connection.peer)!==link)return;
+   if(Date.now()-link.since>10000){link.since=Date.now();link.count=0;link.totalBytes=0;}
+   link.count++;link.totalBytes+=raw.length;
+   if(link.count>600||link.totalBytes>2*1024*1024||link.pendingBytes+raw.length>512*1024){
+    console.warn('Cloud inbound queue/byte limit');connection.close();return;
+   }
+   link.pendingBytes+=raw.length;
+   link.incoming=link.incoming.then(()=>this.receive(link,raw))
+    .catch(e=>{console.warn('Cloud receive rejected:',e instanceof Error?e.name:'Error');connection.close();})
+    .finally(()=>{link.pendingBytes=Math.max(0,link.pendingBytes-raw.length);});
+  });
   connection.on('close',()=>{console.warn('Cloud closed',link.ready,link.count,this.links.size);clearTimeout(link.timeout);if(this.links.get(connection.peer)!==link)return;this.links.delete(connection.peer);if(link.ready&&this.spec.self===this.spec.host){this.event({type:'left',id:connection.peer});for(const l of this.links.values())if(l.ready)this.send(l,{type:'left',id:connection.peer});}else if(this.spec.self!==this.spec.host&&!this.closed)this.retryHost();});
   connection.on('error',e=>{console.warn('Cloud connection error',e.type);connection.close();this.cleanUnopened(link);});
  }
- send(link:Link,data:unknown){link.queue=link.queue.then(async()=>{if(!link.connection.open)return;const body=JSON.stringify({room:this.spec.room,from:this.spec.self,to:link.connection.peer,sequence:++link.sent,data});if(body.length>70000)throw Error('Signal zu groß');const iv=crypto.getRandomValues(new Uint8Array(12));const encrypted=await crypto.subtle.encrypt({name:'AES-GCM',iv},await this.key,encoder.encode(body));link.connection.send(JSON.stringify({iv:base64(iv),cipher:base64(new Uint8Array(encrypted))}));}).catch(e=>{console.warn("Cloud send rejected:",String(e));link.connection.close();});}
+ send(link:Link,data:unknown){
+  if(this.closed||this.links.get(link.connection.peer)!==link)return;
+  let estimated:number;
+  try{estimated=JSON.stringify(data).length+120;}catch{link.connection.close();return;}
+  if(estimated>70000||link.outboundQueued+estimated>512*1024){console.warn('Cloud outbound queue limit');link.connection.close();return;}
+  link.outboundQueued+=estimated;
+  link.queue=link.queue.then(async()=>{
+   if(this.closed||!link.connection.open||this.links.get(link.connection.peer)!==link)return;
+   const body=JSON.stringify({room:this.spec.room,from:this.spec.self,to:link.connection.peer,sequence:link.sent+1,data});
+   if(body.length>70000)throw Error('Signal zu groß');
+   const iv=crypto.getRandomValues(new Uint8Array(12));
+   const encrypted=await crypto.subtle.encrypt({name:'AES-GCM',iv},await this.key,encoder.encode(body));
+   if(this.closed||!link.connection.open||this.links.get(link.connection.peer)!==link)return;
+   link.connection.send(JSON.stringify({iv:base64(iv),cipher:base64(new Uint8Array(encrypted))}));
+   link.sent++;
+  }).catch(e=>{console.warn('Cloud send rejected:',e instanceof Error?e.name:'Error');link.connection.close();})
+   .finally(()=>{link.outboundQueued=Math.max(0,link.outboundQueued-estimated);});
+ }
  async receive(link:Link,raw:string){
+  if(this.closed||this.links.get(link.connection.peer)!==link||!link.connection.open)return;
   const packet=JSON.parse(raw);if(typeof packet.iv!=='string'||packet.iv.length!==16||typeof packet.cipher!=='string'||packet.cipher.length>100000)throw Error('Packet');
   const clear=await crypto.subtle.decrypt({name:'AES-GCM',iv:bytes(packet.iv)},await this.key,bytes(packet.cipher));const body=JSON.parse(decoder.decode(clear));
   if(body.room!==this.spec.room||body.from!==link.connection.peer||body.to!==this.spec.self||!Number.isSafeInteger(body.sequence)||body.sequence!==link.received+1)throw Error('Envelope');link.received=body.sequence;const m=body.data;if(!m||typeof m!=='object')throw Error('Message');
