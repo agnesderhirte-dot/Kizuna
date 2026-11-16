@@ -1,3 +1,15 @@
+# AKTUELLSTE ERGÄNZUNG – 0.4.0 als In-App-Update statt Neuinstallation
+
+Der Nutzer möchte **ausschließlich eine Aktualisierung der bestehenden KIZUNA-Installation**, keine manuell gestartete neue EXE. Diese Vorgabe überlagert ältere Windows-Installer-Testhinweise.
+
+- P2P-Updater der installierten 0.3.2 ist vorhanden. Der Ed25519-Public-Key in `main` und in 0.4.0 ist identisch.
+- Der neue lokale Helper `scripts/prepare-peer-update.cjs` prüft Installer gegen `.sha256`, signiert die Update-Metadaten mit **dem ursprünglichen privaten Key** `build/private/update-key.pem`, prüft die Signatur gegen den eingebetteten Public-Key und gibt eine lokale `.exe.update.json` aus. Niemals Schlüsselmaterial hochladen oder den alten vertrauenswürdigen Schlüssel ersetzen.
+- Ein bereits installierter 0.3.2-Client kann ein **signiertes** Update einem verbundenen Peer anbieten und von ihm empfangen. Empfänger startet die Installation erst nach erfolgreichem Hash-/Signaturnachweis und bewusstem Installationsklick bei beendetem Raum.
+- Der zentrale GitHub-Updater bleibt deaktiviert; ein GitHub-Artefakt allein aktualisiert den vorhandenen Client nicht. Fehlt der alte private Schlüssel oder ein zweiter Peer, ist dieser In-App-Weg noch **blockiert**.
+- [Vollständige Ablaufbeschreibung](docs/IN_APP_UPDATE.md). Keine manuelle EXE-Neuinstallation als erfülltes Nutzerziel ausgeben. Keine Änderung an `main`, kein Merge/Release.
+
+---
+
 # AKTUELLSTE ÜBERGABE – zusätzlicher GitHub-Durchlauf, 16.11.2026
 
 Diese Kurzfassung ist aktueller als die historischen Abschnitte darunter.
