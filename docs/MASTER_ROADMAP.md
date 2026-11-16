@@ -26,12 +26,13 @@ Stand: 2026-11-16. Referenz: `main` / KIZUNA 0.3.2, Entwicklungsbranch `feat/ret
 | KZ-011 | P3 | Optionale E-Mail-/WhatsApp-Erinnerungen | GPT-6 High | Manuelles Teilen umgesetzt; automatischer Versand mangels Provider/Opt-in offen | Opt-in, verifizierter Versandweg, WhatsApp nur offiziell; ggf. Kostenfreigabe |
 | KZ-012 | P0 | Zentraler Updateservice + signierter Upgradepfad | GPT-6 Extra High | Update-Changelog vorbereitet; Signatur/Release weiterhin blockiert | Kein unsigniertes Vertrauen; echter installierter Versionswechsel, aktiven Stream schonen |
 | KZ-013 | P0 | Sicherheit, Netzwerk- und Langzeittests | GPT-6 High | Quellcode/CI-Härtung geprüft; Zwei-PC-/Langzeittests offen | Zwei reale PCs, getrennte Netze, 1h/4h Soak, Wiederverbindung |
-| KZ-014 | P0 | Abschließendes Architektur-/Performance-Audit | GPT-6 Extra High | Vorläufiger Sicherheitsbericht; unabhängige Schlussprüfung offen | Zweites Review, konkrete Messwerte, offene Restrisiken |
+| KZ-014 | P0 | Abschließendes Architektur-/Performance-Audit | GPT-6 Extra High | IPC-/Audio-Speicheroptimierungen CI-getestet; unabhängige Schlussprüfung offen | Zweites Review, konkrete Messwerte, offene Restrisiken |
 | KZ-015 | P0 | Spielsound pro Teilnehmer separat stummschalten und Audio-Video-Synchronität verbessern | GPT-6 High | CI getestet; Zwei-PC-Latenztest offen | Sprecher und Soundboard bleiben hörbar; Bild/Spielsound in einem Stream-Element; Sound-Cache, Empfänger-ACK und Verzögerungsmessung |
 | KZ-016 | P1 | Einzelne Stimmen, Reaktionen und Soundboard-Beiträge je Mitspieler lokal regeln | GPT-6 Medium | CI getestet; Windows-Zwei-PC-Abnahme offen | Receiver-only-Mix, keine Track-Änderungen, P2P-Sender-ID für Sound, Opt-out ohne Störung der Streams |
 | KZ-017 | P1 | Diagnose kopieren und bei dauerhaftem Verlust/Jitter beraten | GPT-6 High | CI getestet; reale Messwertkalibrierung offen | Begrenzter und bewusst geteilter Bericht, keine Zugangsdaten, Warnungen erst nach 3 auffälligen Intervallen |
 | KZ-018 | P2 | Eigene Soundbibliothek mit sicherer Löschung verwalten | GPT-6 Medium | CI getestet; GUI-Abnahme offen | Hash-ID, Sound-only-Löschung, zwei Klicks, andere Assets unangetastet |
 | KZ-019 | P0 | Rasterbild-Dekodierung vorab auf Bildgröße/Pixelbudget prüfen | GPT-6 High | Automatisiert getestet; Decoder-Fuzzing offen | PNG/JPEG/GIF/WebP-Header, Avatar 8MP, andere Bilder 16MP, keine unbeschränkte native Dekodierung |
+| KZ-020 | P2 | Bei jedem Kizuna-Start eine Fußballweisheit anzeigen | GPT-6 Medium, Review High | CI-getestet; Windows-Optik offen | 36 eigene Offline-Sprüche, kein direkter Wiederholer zwischen Programmstarts, skinfarben, schließbar, beim Raumeintritt weg |
 
 ## Arbeitsreihenfolge
 1. Baseline und PR #1 auf technische Probleme prüfen, einschließlich sicherem gespeicherten Fortschritt.
@@ -76,3 +77,9 @@ Nachweis: GitHub Actions [Run 43820759138](https://github.com/agnesderhirte-dot/
 - `.github/workflows/validate.yml`: `pnpm audit --prod --audit-level high` als weitere automatische Release-Hürde.
 - **Erfolgreicher CI-Beleg:** [Run 43828763644](https://github.com/agnesderhirte-dot/Kizuna/actions/runs/43828763644) – `pnpm build` grün, **74 Tests bestanden / 0 Fehler / 1 übersprungen**, Produktionsabhängigkeits-Audit meldete keine bekannten Schwachstellen.
 - Erste Audit-Dokumentation: `docs/SECURITY_AUDIT.md`. **Keine abgeschlossene KZ-014-Abnahme** ohne echte Windows-Hardware, Zwei-PC-Dauertests, Peer-Identitätsprüfung und signierte Upgrade-Tests.
+
+### KZ-020 und weiterer KZ-014-Fortschritt – 16.11.2026
+- **KZ-020:** 36 eigene, nicht zugeschriebene Fußballweisheiten in `src/FootballWisdom.ts`. Ein Spruch pro App-Start, lokale Speicherung nur des zuletzt verwendeten Index (keine unmittelbar aufeinanderfolgenden Wiederholungen), keine Internet- oder Musikrechte, skinfarbene Schließen-Schaltfläche; Hinweis verschwindet nach erfolgreichem Raumeintritt.
+- **KZ-014 (technischer Teil):** `MediaActivityGate` sendet Medienstatus nur bei Änderung an Electron; `SoundPlaybackPool` räumt Blobs und Audioplayer nach natürlichem Ende, Fehler, Stop und Raumwechsel auf. Audio-Ausgabegeräte werden beim Ändern der Lautstärke nicht mehr erneut ausgewählt. Verspätete Hintergrundbild-Ladevorgänge dürfen nach dem Abwählen keinen Objekt-URL-Leak erzeugen.
+- **Verifizierter Build:** [GitHub Actions Run 43835700399](https://github.com/agnesderhirte-dot/Kizuna/actions/runs/43835700399), Commit `f11ca1abaa9cbbce563ef462d965abb27c55ebba`, **83 Tests bestanden, 0 fehlgeschlagen, 1 übersprungen**, TypeScript-/Vite-Build und Audit produktiver Abhängigkeiten grün.
+- **Offen:** Reale Messung von CPU/GPU, Browser-WebRTC-Buffering, zwei Windows-PCs, 1440p60 und Ende-zu-Ende-Audiolatenz. KZ-014 nicht zur Freigabe hochstufen; nur CI-Verhalten nachgewiesen.
