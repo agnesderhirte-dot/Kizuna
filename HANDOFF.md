@@ -1,3 +1,51 @@
+# AKTUELLER HANDOFF – 16.11.2026 (ohne Codex-Sitzung)
+
+Diese Kopfsektion ist der **neueste Stand**. Ältere Übergaben weiter unten sind historische Momentaufnahmen und dürfen nicht unkritisch als aktueller Status übernommen werden.
+
+## Projekt
+- Repo: https://github.com/agnesderhirte-dot/Kizuna
+- Entwicklungsbranch: `feat/retro-modern-skins`
+- Draft-Pull-Request: https://github.com/agnesderhirte-dot/Kizuna/pull/1
+- Ausgangsversion: 0.3.2 in `main`; **kein Merge, keine EXE, kein Update an Nutzer veröffentlicht**.
+- Letzter sicher vollständig geprüfter Stand vor aktualisiertem CI-Workflow: GitHub Actions https://github.com/agnesderhirte-dot/Kizuna/actions/runs/43821435998, erfolgreich. Für jeden neueren Commit neuesten CI-Lauf prüfen; Dokumentations-/Workflow-Änderungen wurden ebenfalls gepusht.
+- `pnpm build` und `pnpm test`: zuletzt 51 Tests erfolgreich, 0 fehlgeschlagen, 1 übersprungen. Dieser Stand ist kein realer Zwei-PC-Test.
+
+## Neu implementiert, vom GitHub-CI-Build gedeckt
+- Skins (9) und Fokusmodus, aktive Sprecherrahmen mit Pegelheuristik, Sync-Fußball-Reaktionen, Suchfeld und Favoriten.
+- Separate Spielsound-Stummschaltung je fremdem Bildschirm, Sprach-/Soundboard-Ton davon unabhängig. Sichtbarer Bildstream und sein Spielton werden über dasselbe HTMLMediaElement wiedergegeben; Soundboard-Dateien pro Peer cachebar.
+- Audio/Video-Diagnose (FSP/Bitrate/RTT/Jitter/Paketverlust/Audiopuffer/kaschierte Samples), Mikrofon-Selbsttest mit rein lokaler 3-Sekunden-Aufnahme, 1440p30/60- und 1080p30-Presets.
+- Profile mit lokal auf 96 × 96 Pixel komprimierter Avatar-Datei (nur JPEG), Bio und Lieblingsspiel. Peer-Profiltransfer ist auf eng begrenzte Datenfelder und Bilder beschränkt; Bearbeitungsentwürfe werden erst nach Speichern publiziert.
+- Spielkalender mit SQLite-Terminen, wöchentlicher Wiederholung, Monatsliste, Windows-Erinnerungen **nur solange Kizuna läuft**, ICS-Export und lokaler Berliner Sommer-/Winterzeit, Kopieren/Teilen in der Lounge sowie ausdrücklich **manuell versendeten** WhatsApp- und E-Mail-Einladungen.
+- Drei eigene synthetische Signal-Sounds: Tor-Signal, Anpfiff, künstlicher Applaus. Keine fremden Aufnahmen oder ungeprüft lizenzierten Sounds eingebaut.
+- Zentraler Updater zeigt Changelog nach sicherer Aktivierung. Releasekanal weiterhin deaktiviert und signaturabhängig.
+- GitHub-Workflow bremst unnötige parallele CI-Aufträge durch `concurrency.cancel-in-progress`.
+
+## Besonders relevante Dateien
+- `src/GameCalendar.tsx`, `desktop/calendar.cjs`: lokale Terminplanung + Erinnerungen + ICS.
+- `src/ProfilePanel.tsx`, `src/mesh.ts`, `src/main.tsx`: Profile und Peer-Broadcast.
+- `src/reactions.ts`, `src/ReactionPicker.tsx`: erweiterte Unicode-Reaktionsbibliothek.
+- `desktop/bundled-sounds.cjs`: reproduzierbare Originaleffekte.
+- `desktop/central-updater.cjs`: begrenzte Release-Informationen mit Einwilligungsdialog.
+- `docs/MASTER_ROADMAP.md`: priorisierte Gesamtcheckliste und empfohlene GPT-Denkstufe für jedes Arbeitspaket.
+- `docs/DEVELOPMENT_PROGRESS.md`: vollständige chronologische Entwicklung.
+- `docs/HARDWARE_ACCEPTANCE.md`: echte Windows-/Zwei-PC-Abnahme.
+- `docs/SOUND_SOURCES.md`: Rechte- und Soundquellennachweis.
+
+## Noch nicht abgeschlossen – durch weiteren Textcode nicht seriös belegbar
+1. Echte Windows-Zwei-PC-Hardwaretests, 1440p60-Qualitätsmessungen, Sprach- und Ende-zu-Ende-Audiolatenz über verschiedene Netze.
+2. Zusätzliche freie externe Musik/Fangesänge nur nach Herkunfts-/Lizenzprüfung. Bisher ausschließlich eigene synthetische Sounds.
+3. Automatische E-Mail-/WhatsApp-Zustellung ohne laufendes Programm benötigt einen autorisierten Versandweg, Konfiguration, explizites Opt-in und ggf. Kostenfreigabe.
+4. Signierte zentrale App-Releases und verifizierte Auto-Updates fehlen wegen Herausgeber-/Codesignatur-/Releasekonfiguration. Bestehende Integritätssicherungen nicht umgehen.
+5. Unabhängiges Abschlussaudit, Windows-GUI, Long-Run und Nutzerfreigabe für die Veröffentlichung.
+
+## Unveränderliche Sicherheitsregeln
+- App-ID `de.voxrally.desktop`, `voxrally://`, lokaler Datenordner `VoxRally` und vorhandene Signaturschlüssel beibehalten, solange Migration nicht getestet.
+- Kein eigenmächtiger Merge nach `main`, keine ungesicherten Updates oder echten Nachrichten an Freunde.
+- Gute Unit-Tests ≠ produktionsreife App; fehlende Hardware-/Leistungsbeweise deutlich kennzeichnen.
+- Keine falschen Werbeaussagen wie „ruckelfreie 1440p60 garantiert“ oder „WhatsApp automatisch“.
+
+---
+
 ## Stand 2026-11-16 – Nacharbeit zu Spielsound und Audioverzögerung
 - Zuletzt geprüfter Quellcommit: `f496c99084580b2fc7fcdc863bc19d86025b20db`; GitHub Actions: https://github.com/agnesderhirte-dot/Kizuna/actions/runs/43817017128 (**Build grün; 34/35 Unit-Tests erfolgreich, einer übersprungen**).
 - Per-Stream-Stummschaltung in `src/VideoStage.tsx` und `src/main.tsx`. In der Stream-Toolbar wird der Spielsound jedes fremden Teilnehmers separat geschaltet; RemoteAudio rendert nur andere Audioarten, Soundboard bleibt unabhängig.
