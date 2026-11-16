@@ -1,3 +1,17 @@
+# AKTUELLSTE ÜBERGABE – zusätzlicher GitHub-Durchlauf, 16.11.2026
+
+Diese Kurzfassung ist aktueller als die historischen Abschnitte darunter.
+
+- Entwicklungsbranch `feat/retro-modern-skins`, Draft-PR #1, vorbereitete Version **0.4.0**. Keine Änderung von `main` oder laufenden Windows-Installationen.
+- **Ergebnis vor den abschließenden Dokumentationscommits:** GitHub CI [43853358827](https://github.com/agnesderhirte-dot/Kizuna/actions/runs/43853358827) prüfte den Funktionscode mit **119 bestandenen Tests, 0 Fehlern**; Build und Runtime-/Dev-Dependency-High-Audit grün. Windows-Paket-Smoketest [43853358803](https://github.com/agnesderhirte-dot/Kizuna/actions/runs/43853358803) ebenfalls erfolgreich. Für den finalen Commit unterhalb **immer GitHub-Actions-SHA erneut vergleichen**.
+- Neu: `src/updates.ts` verhindert raumübergreifende Updateangebote und verspätete Update-Aktionen. Nur vollständig geprüfte Installer bleiben nach Room-Exit für späteren manuellen Installationsklick vorhanden.
+- Neu: `desktop/migrations.cjs` legt **vor** SQLite-v1→v2-Migration ein einmaliges, überprüftes SQLite-V1-Backup durch `VACUUM INTO` an (`voxrally.sqlite.pre-0.4.0-backup`, privates UserData-Verzeichnis). Verunreinigte Backups blockieren das Upgrade; nicht automatisch löschen/überschreiben. `tests/migrations.test.cjs` prüft Snapshot, v1-Inhalt und Rollback.
+- Sicherheitsprüfung exakt: zwei moderate **Dev-Abhängigkeit**-Warnungen zu `minimatch` aus `electron-builder`, Advisory `GHSA-g3hv-75wg-m249`. Kein Runtime-Advisory gefunden. Major-11-Override ohne getestete NSIS-/Windows-Kompatibilität unterlassen.
+- Windows-Bausteine weiterhin ausstehend: manuelle Datenrücksicherung aus dem V1-Snapshot, echte Zwei-PC-Audio-/1440p60-Latenztests, signierter Publisher-Release, Tests der installierten Updatestrecke. Kein Merge, keine Freigabe, keine EXE an andere Nutzer.
+- Weitere Einzelheiten: `docs/MASTER_ROADMAP.md`, `docs/WINDOWS_HANDOFF.md`, `docs/SECURITY_AUDIT.md`.
+
+---
+
 # AKTUELLSTE ÜBERGABE – 16.11.2026 / bis zur Windows-/Codex-Phase
 
 Die folgende Sektion ist der **aktuellste** verbindliche Stand; ältere Bereiche weiter unten sind historische Übergaben.
