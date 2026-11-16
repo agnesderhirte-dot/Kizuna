@@ -52,3 +52,12 @@
 ## Historischer Befund
 
 Die ursprüngliche Prüfung vom 11.11.2026 meldete ein moderates minimatch-Advisory (GHSA-g3hv-75wg-m249) bei einem Entwicklungswerkzeug; dieser Befund ist **nicht** gleichbedeutend mit einem aktuell bekannten kritischen Laufzeitfehler. Der aktuelle Runtime-Audit vom 16.11.2026 hat keine bekannten Sicherheitslücken gemeldet. Ältere Aussagen „automatischer Updater nicht implementiert“ sind überholt: Der zentrale Updater existiert, ist aber aus Sicherheitsgründen nicht produktiv aktiviert.
+
+## Ergänzung 16.11.2026: Upgrade-, Geräte- und Entwicklungsabhängigkeitssicherheit
+
+- `src/main.tsx`: Sitzungsepoche verhindert, dass verspätete getUserMedia-/getDisplayMedia-Freigaben nach Raumverlassen zu einem Medienleck führen. UI-Mikrofonberechtigungs- und Windows-Schlaf-/Resume-Test sind noch ausstehend.
+- `desktop/main.cjs`: `pendingCapture` wird bei Disconnect entfernt; zuvor gehostete lokale WebSocket-Server werden bei Raumwechsel geschlossen.
+- `desktop/migrations.cjs`: Atomare Version-2-Migration mit Schema-/Spaltenvalidierung vor Commit; unbekannt höhere Versionen werden nicht rückwirkend überschrieben.
+- Releasevorbereitung: Programmversion im Draft-Branch `0.4.0`; keine Signatur- oder Vertrauensumgehung, `main`/installierte Version unverändert.
+- CI erweitert um `pnpm audit --audit-level high` **einschließlich Build-/Dev-Abhängigkeiten**. Beim früheren Lauf 43849225448 wurden zwei Moderate in Dev-Abhängigkeiten gemeldet. Da der Schwellwert High ist, bleibt der Test bei ausbleibenden High/Critical rot nicht; es darf aber nicht behauptet werden, die gesamte Abhängigkeitsliste habe keine Advisories.
+- Neues Restrisiko: Version 2 wurde bislang nur gegen synthetische und simulierte alte SQLite-Datenbanken geprüft. Eine Sicherung und echte Migration einer existierenden Windows-0.3.2-Installation bleiben zwingend vor Freigabe.
