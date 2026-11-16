@@ -58,6 +58,8 @@ export function GameCalendar({onShare}:{onShare?:(item:GameSession)=>Promise<voi
     <button className="primary" type="submit" disabled={busy}>Spielabend speichern</button>
     {items.some(s=>s.id===selected.id)&&<div className="calendar-actions">
      <button type="button" disabled={busy} onClick={()=>void operation(async()=>{await window.vox.copySession(selected);setNotice('Termintext kopiert – in E-Mail oder WhatsApp einfügen.');})}>Text kopieren</button>
+     <button type="button" disabled={busy} onClick={()=>void operation(async()=>{await window.vox.shareSession({item:selected,channel:'email'});setNotice('Dein E-Mail-Programm wurde geöffnet. Bitte Nachricht selbst versenden.');})}>E-Mail vorbereiten</button>
+     <button type="button" disabled={busy} onClick={()=>void operation(async()=>{await window.vox.shareSession({item:selected,channel:'whatsapp'});setNotice('WhatsApp wurde geöffnet. Bitte Nachricht selbst versenden.');})}>WhatsApp öffnen</button>
      {onShare&&<button type="button" disabled={busy} onClick={()=>void operation(async()=>{await onShare(selected);setNotice('Termin in die aktuelle Lounge gesendet.');})}>Im Raum teilen</button>}
      <button type="button" disabled={busy} onClick={()=>void operation(async()=>{await window.vox.deleteSession(selected.id);await refresh();setSelected(defaults());setNotice('Spielabend gelöscht.');})}>Löschen</button>
     </div>}
