@@ -73,3 +73,12 @@ Commit, betroffene Dateien, Status der Roadmap, nachweislich ausgeführte Tests 
 - **Tests**: `tests/peer-audio.test.cjs`, `tests/peer-effects.test.cjs`, `tests/diagnostic-report.test.cjs`, `tests/sound-library.test.cjs`, `tests/quality-advice.test.cjs` und überarbeitete `tests/audio-routing.test.cjs`.
 - **Grüner GitHub-CI-Nachweis**: [Run 43825148728](https://github.com/agnesderhirte-dot/Kizuna/actions/runs/43825148728), Commit `c67db4bae8886750e5bffef59ec101bddf329820`; `pnpm build` PASS, `pnpm test` **66 bestanden / 0 fehlgeschlagen / 1 übersprungen**. Die danach vorgenommenen Warntext- und Dokumentationscommits werden durch nachfolgendes CI erneut validiert.
 - **Immer noch offen**: Reale Windows-Voice-/Mute-/Latenztests mit zwei PCs, Hardware-Benchmark 1440p60, vollständiges Sicherheits- und Langzeitaudit, Codesigning-/Release-Infrastruktur und Freigabe. Keine Installation oder Aktualisierung auf Nutzer-PCs durchgeführt.
+
+## 2026-11-16 – Masterprompt KZ-013: Sicherheit/Stabilität und KZ-014-Auditvorbereitung
+- WebRTC mit Kandidatenvalidierung, doppelten Datenkanälen, peergebundenen Soundbestätigungen, 32er Cache-Limit und zuverlässigerem Aufräumen der Audio-/Streamressourcen gehärtet.
+- Verschlüsselte Cloud-Signalisierung besitzt zusätzliche Inbound-/Outbound-Queue-Limits und 10-Sekunden-Bytebudgets. Veraltete Verbindungspakete werden nicht weiterverarbeitet.
+- PNG/JPEG/GIF/WebP-Abmessungen werden vor der Electron-Bilddekodierung geprüft (Pixelbudget 8 MP Avatar, 16 MP sonstige Bilder; Avatar bis 4 MiB Dateigröße).
+- Neue Tests: `mesh-hardening`, `signaling-hardening`, `image-limits`. GitHub CI erweitert um `pnpm audit --prod --audit-level high`.
+- **Nachweis:** [Actions-Run 43828763644](https://github.com/agnesderhirte-dot/Kizuna/actions/runs/43828763644), Commit `f61ec2a953ab41fc6c40ef0187ce9f642e0047d3`, Build bestanden; **74 Tests bestanden / 0 fehlgeschlagen / 1 übersprungen**; Runtime-Audit meldete keine bekannten Schwachstellen.
+- Sicherheitsbericht: `docs/SECURITY_AUDIT.md`; verbleibende Risiken: dauerhafte Peeridentität, unverschlüsseltes LAN-Signaling, Decoder-Fuzzing, Windows-Zwei-PC-/Langzeittests, reale 1440p60-/Audio-Messungen, signierter Updatepfad und unabhängiges Schlussreview.
+- **Kein Merge nach main, kein neuer Installer, keine Veröffentlichung.**
