@@ -1,7 +1,7 @@
 const {Notification,app,BrowserWindow,ipcMain,session,desktopCapturer,dialog,safeStorage,shell,clipboard,globalShortcut}=require('electron');
 const path=require('node:path');const fs=require('node:fs');const crypto=require('node:crypto');const os=require('node:os');const {pathToFileURL}=require('node:url');
 const {DatabaseSync}=require('node:sqlite');const {WebSocket}=require('ws');const {z}=require('zod');
-const security=require('./security.cjs');const calendar=require('./calendar.cjs');const {createSignaling}=require('./signaling.cjs');
+const security=require('./security.cjs');const calendar=require('./calendar.cjs');const builtinSounds=require('./bundled-sounds.cjs');const {createSignaling}=require('./signaling.cjs');
 app.setPath('userData',process.env.VOXRALLY_TEST_DATA?path.resolve(process.env.VOXRALLY_TEST_DATA):path.join(app.getPath('appData'),'VoxRally'));
 app.setName('KIZUNA');
 let mediaActive=true,win,db,server,socket,pendingCapture,activeRoom,activeInvite,pendingInvite,retryTimer,calendarTimer,connectionSpec,retryCount=0;
@@ -84,6 +84,20 @@ else {
   handle('leave',()=>{disconnect();return true;});
   handle('signal',arg=>{const m=z.object({to:security.id,data:z.object({description:z.object({type:z.enum(['offer','answer']),sdp:z.string().max(58000)}).optional(),candidate:z.unknown().optional()}).strict()}).strict().parse(arg);if(!socket||socket.readyState!==WebSocket.OPEN||JSON.stringify(m).length>60000)throw Error('Keine Verbindung');socket.send(JSON.stringify({v:1,type:'signal',...m}));return true;});
   handle('importAsset',async arg=>{const kind=z.enum(['background','sound','emoji','avatar']).parse(arg);const picked=await dialog.showOpenDialog(win,{properties:['openFile'],filters:[{name:kind,extensions:kind==='sound'?['wav','mp3','ogg','flac']:['png','jpg','jpeg','webp','gif']}]});if(picked.canceled)return null;const file=picked.filePaths[0];if(fs.statSync(file).size>10*1024*1024)throw Error('Maximal 10 MB');if(db.prepare('SELECT count(*) AS n FROM assets').get().n>=100)throw Error('Bibliothek maximal 100 Dateien');const a=assetInfo(fs.readFileSync(file),kind);if(a.bytes.length>16*1024*1024)throw Error('Dekodierte Datei zu groß');const id=crypto.createHash('sha256').update(a.bytes).digest('hex');fs.writeFileSync(assetFile(id),a.bytes);const item={id,name:path.basename(file).slice(0,80),kind,mime:a.mime};db.prepare('INSERT OR REPLACE INTO assets VALUES(?,?,?,?)').run(id,item.name,kind,a.mime);return item;});
+  handle('installBuiltinSounds',()=>{
+   const installed=[];
+   for(const track of builtinSounds.tracks){
+    const sound=builtinSounds.synth(track.id);
+    const id=crypto.createHash('sha256').update(sound.bytes).digest('hex');
+    const existing=db.prepare('SELECT * FROM assets WHERE id=?').get(id);
+    if(existing){installed.push(existing);continue;}
+    if(db.prepare('SELECT count(*) AS n FROM assets').get().n>=100)throw Error('Soundbibliothek ist voll');
+    fs.writeFileSync(assetFile(id),sound.bytes);
+    db.prepare('INSERT OR IGNORE INTO assets VALUES(?,?,?,?)').run(id,sound.name,'sound',sound.mime);
+    installed.push({id,name:sound.name,kind:'sound',mime:sound.mime});
+   }
+   return installed;
+  });
   handle('asset',arg=>{const file=assetFile(arg);const meta=db.prepare('SELECT mime FROM assets WHERE id=?').get(arg);if(!meta)throw Error('Unbekanntes Asset');return {bytes:new Uint8Array(fs.readFileSync(file)),mime:meta.mime};});
   handle('listSessions',()=>calendar.list(db));
   handle('saveSession',item=>calendar.save(db,item));
