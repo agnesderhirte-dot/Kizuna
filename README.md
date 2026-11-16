@@ -1,8 +1,8 @@
-# KIZUNA – private Gaming-Kommunikation (Entwicklungsstand 0.3.2)
+# KIZUNA – private Gaming-Kommunikation (0.4.0 vorbereitet, noch nicht freigegeben)
 
 KIZUNA ist eine Windows-Desktop-Anwendung auf Basis von Electron, React und WebRTC. Ziel: unkomplizierter Sprachchat, mehrere gleichzeitige Bildschirmstreams und eigene Gaming-Sounds für kleine Freundesgruppen.
 
-**Wichtig:** `main` enthält die unveröffentlichte Ausgangsversion 0.3.2. Der Branch `feat/retro-modern-skins` (Draft-Pull-Request #1) enthält zusätzliche Funktionen, die auf GitHub gebaut und durch Unit-Tests geprüft wurden, aber **noch nicht auf zwei realen Windows-PCs abgenommen oder an alle Nutzer verteilt wurden**.
+**Wichtig:** `main` enthält die bisherige Ausgangsversion 0.3.2; der Entwicklungsbranch bereitet 0.4.0 vor. Der Branch `feat/retro-modern-skins` (Draft-Pull-Request #1) enthält zusätzliche Funktionen, die auf GitHub gebaut und durch Unit-Tests geprüft wurden, aber **noch nicht auf zwei realen Windows-PCs abgenommen oder an alle Nutzer verteilt wurden**.
 
 ## Funktionen im Entwicklungsbranch
 
@@ -41,6 +41,8 @@ Vor Release ist ein manueller Test auf zwei echten PCs und unter verschiedenen N
 - [Verbindliche Entwicklungs-Roadmap](docs/MASTER_ROADMAP.md)
 - [Letzter Entwicklungsfortschritt](docs/DEVELOPMENT_PROGRESS.md)
 - [Übergabe an weitere KI-Sitzungen](HANDOFF.md)
+- [Windows-/Codex-Übergabe](docs/WINDOWS_HANDOFF.md)
+- [Nitro-ähnliche Funktionen nach Nutzwert](docs/NITRO_FEATURE_REVIEW.md)
 - [Tonquellen und Nutzungsrechte](docs/SOUND_SOURCES.md)
 - [Test- und Sicherheitsanforderungen](docs/TESTING.md)
 
