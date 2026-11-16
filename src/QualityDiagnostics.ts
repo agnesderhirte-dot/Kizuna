@@ -5,19 +5,19 @@
 type Stat = {
  id:string;type:string;timestamp:number;kind?:string;mediaType?:string;
  bytesSent?:number;bytesReceived?:number;packetsLost?:number;packetsReceived?:number;
- jitter?:number;framesPerSecond?:number;frameWidth?:number;frameHeight?:number;
+ jitter?:number;jitterBufferDelay?:number;jitterBufferEmittedCount?:number;concealedSamples?:number;totalSamplesReceived?:number;framesPerSecond?:number;frameWidth?:number;frameHeight?:number;
  framesDropped?:number;framesDecoded?:number;freezeCount?:number;
  roundTripTime?:number;currentRoundTripTime?:number;
  codecId?:string;mimeType?:string;selectedCandidatePairId?:string;
  localCandidateId?:string;remoteCandidateId?:string;candidateType?:string;
 };
-type Snapshot={timestamp:number;bytes?:number;received?:number;lost?:number;dropped?:number;decoded?:number};
+type Snapshot={timestamp:number;bytes?:number;received?:number;lost?:number;dropped?:number;decoded?:number;jitterBufferDelay?:number;jitterBufferEmittedCount?:number;concealedSamples?:number;totalSamplesReceived?:number};
 const finite=(value:unknown):value is number=>typeof value==='number'&&Number.isFinite(value);
 const positive=(value:unknown)=>finite(value)?Math.max(0,value):0;
 const display=(value:unknown,unit:string)=>finite(value)?`${Math.round(value)} ${unit}`:'k. A.';
 const delta=(now:number|undefined,previous:number|undefined)=>finite(now)&&finite(previous)&&now>=previous?now-previous:undefined;
 
-export type PeerQuality={lines:string[];videoSendFps?:number;videoReceiveFps?:number;audioLossPct?:number};
+export type PeerQuality={lines:string[];videoSendFps?:number;videoReceiveFps?:number;audioLossPct?:number;audioPlayoutBufferMs?:number};
 export class QualityDiagnostics {
  private old=new Map<string,Snapshot>();
  measure(peerId:string,peerName:string,report:RTCStatsReport):PeerQuality{
@@ -47,7 +47,7 @@ export class QualityDiagnostics {
    const recv=old?delta(s.packetsReceived,old.received):undefined;
    const lost=old?delta(s.packetsLost,old.lost):undefined;
    const lossPct=recv!==undefined&&lost!==undefined&&recv+lost>0?100*lost/(recv+lost):undefined;
-   this.old.set(key,{timestamp:s.timestamp,bytes:currentBytes,received:s.packetsReceived,lost:s.packetsLost,dropped:s.framesDropped,decoded:s.framesDecoded});
+   this.old.set(key,{timestamp:s.timestamp,bytes:currentBytes,received:s.packetsReceived,lost:s.packetsLost,dropped:s.framesDropped,decoded:s.framesDecoded,jitterBufferDelay:s.jitterBufferDelay,jitterBufferEmittedCount:s.jitterBufferEmittedCount,concealedSamples:s.concealedSamples,totalSamplesReceived:s.totalSamplesReceived});
    const codec=s.codecId?stats.get(s.codecId)?.mimeType?.replace(/^video\/|^audio\//,''):undefined;
    const direction=s.type==='outbound-rtp'?'Senden':'Empfang';
    if(kind==='video'){
@@ -63,7 +63,14 @@ export class QualityDiagnostics {
     lines.push(`${peerName} · Video ${direction}: ${resolution} · ${fps??'?'} FPS · ${mbps===undefined?'Bitrate wird ermittelt':mbps.toFixed(2)+' Mbit/s'}${codec?' · '+codec:''}${suffix}`);
    }else{
     if(direction==='Empfang'&&lossPct!==undefined)outcome.audioLossPct=lossPct;
-    lines.push(`${peerName} · Audio ${direction}: ${codec||'Codec k. A.'}${finite(s.jitter)?' · Jitter '+(s.jitter*1000).toFixed(1)+' ms':''}${lossPct===undefined?'':' · Paketverlust '+lossPct.toFixed(1)+' %'}`);
+    const bufferDelay=old?delta(s.jitterBufferDelay,old.jitterBufferDelay):undefined;
+    const emitted=old?delta(s.jitterBufferEmittedCount,old.jitterBufferEmittedCount):undefined;
+    const bufferMs=direction==='Empfang'&&bufferDelay!==undefined&&emitted&&emitted>0?bufferDelay*1000/emitted:undefined;
+    if(bufferMs!==undefined&&Number.isFinite(bufferMs))outcome.audioPlayoutBufferMs=bufferMs;
+    const hidden=old?delta(s.concealedSamples,old.concealedSamples):undefined;
+    const samples=old?delta(s.totalSamplesReceived,old.totalSamplesReceived):undefined;
+    const concealPct=direction==='Empfang'&&hidden!==undefined&&samples&&samples>0?Math.min(100,100*hidden/samples):undefined;
+    lines.push(`${peerName} · Audio ${direction}: ${codec||'Codec k. A.'}${finite(s.jitter)?' · Jitter '+(s.jitter*1000).toFixed(1)+' ms':''}${lossPct===undefined?'':' · Paketverlust '+lossPct.toFixed(1)+' %'}${bufferMs===undefined?'':' · Audiopuffer '+bufferMs.toFixed(0)+' ms'}${concealPct===undefined?'':' · kaschierte Audiodaten '+concealPct.toFixed(1)+' %'}`);
    }
   }
   if(!lines.length)lines.push(`${peerName}: noch keine RTP-Daten`);
