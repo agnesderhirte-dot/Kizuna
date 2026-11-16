@@ -8,13 +8,14 @@ KIZUNA ist eine Windows-Desktop-Anwendung auf Basis von Electron, React und WebR
 
 - Private Räume bis vier Teilnehmer mit WebRTC-Audio, Kamera und gleichzeitigen Bildschirmstreams; direkte Verbindung soweit NAT und Netzwerk es zulassen.
 - Spielsound **pro fremdem Bildschirm** separat stummschalten; Sprachchat und Soundboard bleiben unabhängig hörbar.
-- Getrennte Lautstärken für Sprache, Spielton und Soundboard; Mikrofontest mit rein lokaler 3-Sekunden-Aufnahme; Qualitätsstatistiken für Audio/Video.
+- Getrennte Lautstärken für Sprache, Spielton und Soundboard, zusätzlich individuelle Sprachlautstärke, Stummschaltung und Reaktions-/Soundboard-Filter je Mitspieler; Mikrofontest mit rein lokaler 3-Sekunden-Aufnahme.
+- Diagnosebericht mit technischen WebRTC-Werten zum manuellen Kopieren und vorsichtige Hinweise bei wiederholt auffälligen Audiopuffern/Netzwerkverlusten. Teilnehmernamen können im Bericht enthalten sein.
 - Streaming-Presets: Football Manager (1440p30), Gaming (1440p60), Sparmodus (1080p30), je nach erreichbarer Hardware/Netzwerkleistung.
 - Neun auswählbare Themes vom Winamp-Retro-Stil bis zu Modern Glass; Fokusmodus, Vollbild und verschiebbare Kamera.
 - Skin-abhängiger Sprecherrahmen; pegelbasiert, nicht sprachspezifisch; visuelle Reaktionen und über 100 Fußball-/Gaming-/Standard-Emojis mit lokalen Favoriten.
 - Spielerprofile mit kompaktem Profilfoto (96 × 96), Bio und Lieblingsspiel; Weitergabe an verbundene Peers, keine zusätzliche Cloud-Datenbank.
 - Gaming-Kalender: Termine, wöchentliche Wiederholung, Monat und Terminliste, lokale Erinnerung bei **geöffnetem** KIZUNA, ICS-Export, manuell vorbereitete WhatsApp-/E-Mail-Nachrichten und Teilen in der Lounge.
-- Eigene WAV/MP3/OGG/FLAC-Sounds importieren; drei optionale, vollständig synthetisch generierte KIZUNA-Signaltöne ohne externe Aufnahmen.
+- Eigene WAV/MP3/OGG/FLAC-Sounds importieren und nach zweistufiger Bestätigung löschen; drei optionale, vollständig synthetisch generierte KIZUNA-Signaltöne ohne externe Aufnahmen.
 - Datenspeicherung in lokaler SQLite und verschlüsselte Geheimnisse mit Windows Secure Storage.
 
 ## Installation und Updates
