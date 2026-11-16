@@ -12,6 +12,15 @@ Threats and current controls:
 - Sender spoofing at relay: server replaces sender IDs; stable cryptographic peer verification remains open.
 - Memory/CPU abuse: WebSocket size/rate/connection limits, bounded room count, bounded candidate queue, chat retention, 10 MB sound transfers, bounded sound cache, transfer deadlines and cooldowns.
 - Credential leakage: DPAPI at rest, no intentional secret logging, no renderer storage, validated HTTPS external links. LAN signaling remains plaintext and requires a trusted network/VPN.
-- Malicious update: no automatic updater or downloaded code execution.
+- Malicious update: P2P-Updateprüfung und zentraler Updatecode existieren. Der zentrale Releasekanal bleibt bis zur vertrauenswürdigen Signatur- und Windows-Abnahme deaktiviert.
 
 Open review areas: malicious signaling host, local port denial of service, decoder resource amplification, replay/clock manipulation, memory stabilization over hours, exhaustive IPC frame tests, invite revocation, stable identity authentication. These block a full stable-release sign-off.
+
+## Ergänzende Schutzmaßnahmen vom 16.11.2026
+- Browser-ICE-Kandidaten nur nach Typ-/Längenprüfung verarbeiten; doppelte WebRTC-Nachrichten-/Updatekanäle abweisen.
+- Für Sounddaten nur Hash-Bestätigungen akzeptieren, die dem Peer zuvor angeboten wurden, und maximal 32 akzeptierte Cacheeinträge vorhalten.
+- Beim Verlassen einer Sitzung Sound-Transfers, Audio-Timer und Peer-Streamreferenzen aufräumen.
+- Cloud-Signaling: maximal 2 MiB Nachrichten pro 10 Sekunden sowie jeweils 512 KiB pending inbound/outbound; keine Verarbeitung veralteter Link-Nachrichten.
+- Native Rasterbilddekodierung nur nach Prüfung der Headerdimensionen und des Pixelbudgets (PNG/JPEG/GIF/WebP).
+- `pnpm audit --prod --audit-level high` als CI-Release-Hürde; letzter Runtime-Scan meldete keine bekannten Sicherheitslücken.
+- Weiterhin offen: überprüfte dauerhafte Peeridentität, Klartext-LAN-`ws://`, bösartige Host-/Decoder-Fuzztests, Hardware-Dauertest und signierte Releasekette.
