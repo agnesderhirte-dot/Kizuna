@@ -47,6 +47,20 @@ test('protects against counters resetting and missing transport data',async()=>{
  assert.ok(reset.lines.some(s=>s.includes('Bitrate wird ermittelt')));
  q.clear();
 });
+test('shows actual inbound audio buffering and concealment without inventing latency',async()=>{
+ const {QualityDiagnostics}=await modulePromise;
+ const q=new QualityDiagnostics();
+ const report=(time,delay,count,concealed,samples)=>new Map([
+  ['opus',{id:'opus',type:'codec',timestamp:time,mimeType:'audio/opus'}],
+  ['audio',{id:'audio',type:'inbound-rtp',kind:'audio',timestamp:time,codecId:'opus',bytesReceived:time*10,packetsReceived:time,packetsLost:0,jitter:0.02,jitterBufferDelay:delay,jitterBufferEmittedCount:count,concealedSamples:concealed,totalSamplesReceived:samples}]
+ ]);
+ const first=q.measure('p','Other',report(1000,1,100,2,1000));
+ assert.equal(first.audioPlayoutBufferMs,undefined);
+ const next=q.measure('p','Other',report(2000,2.2,140,12,2000));
+ assert.ok(Math.abs(next.audioPlayoutBufferMs-30)<0.01);
+ assert.ok(next.lines.some(s=>s.includes('Audiopuffer 30 ms')));
+ assert.ok(next.lines.some(s=>s.includes('kaschierte Audiodaten 1.0 %')));
+});
 test('diagnostics do not reconfigure codec or track; mic recordings are ephemeral',()=>{
  const quality=fs.readFileSync(path.join(__dirname,'../src/QualityDiagnostics.ts'),'utf8');
  const microphone=fs.readFileSync(path.join(__dirname,'../src/AudioCheck.tsx'),'utf8');
