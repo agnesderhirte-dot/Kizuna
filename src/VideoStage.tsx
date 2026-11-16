@@ -9,13 +9,15 @@ function Video({tile,sound}:{tile:VideoTile;sound:ScreenSound}){
  const ref=useRef<HTMLVideoElement>(null);
  const playsScreenAudio=!tile.local&&tile.kind==='screen';
  useEffect(()=>{const video=ref.current!;video.srcObject=tile.stream;void video.play().catch(e=>sound.onError('Stream-Wiedergabe fehlgeschlagen: '+String(e)));return()=>{video.pause();video.srcObject=null;};},[tile.stream,sound.onError]);
- useEffect(()=>{const video=ref.current!;video.volume=sound.volume;if(playsScreenAudio)configureOutput(video,sound.output,sound.onError);},[sound.volume,sound.output,sound.onError,playsScreenAudio]);
+ useEffect(()=>{ref.current!.volume=sound.volume;},[sound.volume]);
+ useEffect(()=>{if(playsScreenAudio)configureOutput(ref.current!,sound.output,sound.onError);},[sound.output,sound.onError,playsScreenAudio]);
  return <><video ref={ref} autoPlay playsInline muted={!playsScreenAudio||sound.muted}/><figcaption>{tile.avatar&&<img className="tile-avatar" src={tile.avatar} alt=""/>}{tile.name} · {tile.kind==='screen'?'Bildschirm':tile.kind==='camera'?'Kamera':'Video'}</figcaption></>;
 }
 function OffscreenAudio({tile,sound}:{tile:VideoTile;sound:ScreenSound}){
  const ref=useRef<HTMLAudioElement>(null);
  useEffect(()=>{const audio=ref.current!;audio.srcObject=tile.stream;void audio.play().catch(e=>sound.onError('Spielsound-Wiedergabe fehlgeschlagen: '+String(e)));return()=>{audio.pause();audio.srcObject=null;};},[tile.stream,sound.onError]);
- useEffect(()=>{const audio=ref.current!;audio.volume=sound.volume;configureOutput(audio,sound.output,sound.onError);},[sound.volume,sound.output,sound.onError]);
+ useEffect(()=>{ref.current!.volume=sound.volume;},[sound.volume]);
+ useEffect(()=>{configureOutput(ref.current!,sound.output,sound.onError);},[sound.output,sound.onError]);
  return <audio ref={ref} autoPlay muted={sound.muted} aria-hidden="true"/>;
 }
 const clamp=(n:number)=>Math.max(0,Math.min(1,n));
