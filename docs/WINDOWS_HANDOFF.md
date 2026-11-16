@@ -49,3 +49,10 @@
 - Sicherheitsrisiken geprüft, kein offenes schwerwiegendes Problem.
 - Signierter, verifizierbarer Releaseweg; einwilligungsbasierter Download und keine Installation während eines aktiven Spielabends.
 - **Ausdrückliche Freigabe**, bevor ein Update an andere Nutzer verteilt wird.
+
+## Zusätzliche Windows-Prüfungen für die letzte Sicherheitsrunde
+1. Auf einer **Kopie der alten 0.3.2-Nutzerdaten** starten. Vor v2-Schemamigration muss im UserData-Verzeichnis `voxrally.sqlite.pre-0.4.0-backup` entstehen. Es muss ein konsistentes SQLite-v1-Snapshot enthalten; Daten, Einstellungen, Kalender und Chat vergleichen und eine **Wiederherstellung aus diesem Backup** erproben.
+2. Testen, dass die Sicherung bei einem zweiten KIZUNA-Start nicht überschrieben wird. Der Backup-Pfad enthält sensible Chat-/Profildaten und darf nicht versehentlich geteilt oder veröffentlicht werden.
+3. Zwei aufeinanderfolgende Räume betreten; P2P-Update-Angebot nur im ersten Raum auswählen, Dialog lange offen halten und dann den Raum verlassen. Der spätere Dialogabschluss darf **keine** Updateangebote im neuen Raum senden.
+4. Vollständig signierten und geprüften Update-Download durchführen, dann Raum verlassen. Installer darf nur nach ausdrücklicher manueller Freigabe starten, niemals während eines aktiven Streams.
+5. GHSA-g3hv-75wg-m249: `minimatch` in zwei electron-builder-Transitiven mit moderatem Schweregrad. Vor einem Upstream-Build-Tool-Upgrade danach echten NSIS-Installer und signierte Updatekette testen; keine blinde globale Überschreibung auf Major 11.
