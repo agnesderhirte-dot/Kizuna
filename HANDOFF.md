@@ -1,3 +1,16 @@
+# AKTUELLSTE ÜBERGABE – 16.11.2026 / KZ-020 und KZ-014
+
+Diese Kopfsektion ist aktueller als alle nachfolgenden historischen Statusangaben.
+
+- Projekt: https://github.com/agnesderhirte-dot/Kizuna, Entwicklungsbranch `feat/retro-modern-skins`, Draft-PR #1, kein Merge.
+- **Neue Startfunktion KZ-020:** 36 kurze eigene Fußballweisheiten, je ein Spruch pro App-Start, letzter numerischer Index nur lokal gespeichert (`localStorage`), keine unmittelbare Wiederholung. Schließbar, skinfarbener Banner unter Haupttitel, Ausblendung beim erfolgreichen Raumeintritt. Implementierung `src/FootballWisdom.ts`, `src/main.tsx`, `src/style.css`; Tests `tests/football-wisdom.test.cjs`.
+- **KZ-014 Codeoptimierungen:** `src/MediaActivityGate.ts` verhindert redundante IPC-Meldungen aktiver Medien; `src/SoundPlaybackPool.ts` gibt Audio und Blob-URLs bei Ende/Stop/Fehler/Room-Exit frei; Audio-Sink wird bei Lautstärkeregelung nicht ständig neu initialisiert. Asynchroner Hintergrundbildwechsel akzeptiert nur gültige aktuelle Ergebnisse.
+- **Geprüfter Programmstand:** Commit `f11ca1abaa9cbbce563ef462d965abb27c55ebba` [GitHub Actions Run 43835700399](https://github.com/agnesderhirte-dot/Kizuna/actions/runs/43835700399): TypeScript/Vite-Build erfolgreich, **83 Tests bestanden / 0 Fehler / 1 übersprungen**, Runtime-Dependency-Audit ohne gemeldete High/Critical-Advisories. Danach wurden dokumentierende Commits erstellt; letzten CI-Run prüfen.
+- **Offen:** echte Windows-UI, CPU/GPU-/Netzwerkmessung, Audio-Ende-zu-Ende-Latenz auf zwei PCs, stabile 1440p60-Leistung unter Last, unabhängige finale KZ-014-Prüfung und signierte Updateveröffentlichung. Die installierte App und `main` sind weiterhin unverändert. Keine Nutzeraktualisierung veranlassen, solange keine Releasefreigabe vorliegt.
+- Details: `docs/MASTER_ROADMAP.md`, `docs/DEVELOPMENT_PROGRESS.md`, `docs/HARDWARE_ACCEPTANCE.md`.
+
+---
+
 # AKTUELLSTE ÜBERGABE – 16.11.2026 / Megaprompt KZ-013 & KZ-014
 
 - Entwicklungsbranch `feat/retro-modern-skins`, Draft-PR https://github.com/agnesderhirte-dot/Kizuna/pull/1, `main` unverändert.
