@@ -1,3 +1,32 @@
+# AKTUELLSTE ÜBERGABE – 16.11.2026 / bis zur Windows-/Codex-Phase
+
+Die folgende Sektion ist der **aktuellste** verbindliche Stand; ältere Bereiche weiter unten sind historische Übergaben.
+
+## Projekt und Release-Schutz
+- Repository: https://github.com/agnesderhirte-dot/Kizuna
+- Branch `feat/retro-modern-skins`, [Draft-PR #1](https://github.com/agnesderhirte-dot/Kizuna/pull/1), kein Merge nach `main`.
+- Ausgelieferte/alte Basis 0.3.2; im Branch ist **0.4.0** als nächstes **unveröffentlichtes** Feature-Release vorbereitet. Alte App-ID `de.voxrally.desktop`, `voxrally://`, EXE-Name `VoxRally` und `%APPDATA%\\VoxRally` bleiben gleich. Kein Installer erstellt, keine Signatur gewechselt, keine Endnutzer aktualisiert.
+- Zentrale Updates sind mangels Publisher-Codesignatur weiterhin deaktiviert. P2P-Updatefunktion hält ihren bestehenden Ed25519-Public-Key; keine signaturlose Abkürzung.
+- Das aktuelle CI-Ergebnis muss stets für die aktuelle PR-Head-SHA geprüft werden; frühere Testergebnisse nicht auf neue Commits übertragen.
+
+## Letzte direkt über GitHub erledigte Aufgaben
+- KZ-021: verspätete `getUserMedia`-/`getDisplayMedia`-Freigaben über `sessionEpoch` nach Room-Exit verwerfen und Tracks stoppen.
+- KZ-022: transaktionale SQLite-Migration v1→v2 mit Validierung von Tabellen/Spalten, Rollback und Erhalt von Einstellungen, Chat und Assets.
+- KZ-023: lokale WebSocket-Signaling-Server bei Room-Exit/-Wechsel zuverlässig schließen, Capture-Tickets verwerfen.
+- KZ-024: GitHub CI prüft TypeScript/Vite/Node-Tests und High/Critical-Advisories für Produktions- **und** Entwicklungsabhängigkeiten. Zwei Moderate im Dev-Scope wurden bei Run 43849225448 gemeldet, keine High/Critical.
+- UI-Korrekturen: eigenes Profilfoto in der Sidebar, Spielkalender mit korrekter Überschrift.
+- Nutzwertanalyse Nitro-Funktionen in `docs/NITRO_FEATURE_REVIEW.md`; Zusatzfeatures mit unnötigem Bandbreiten-/GPU-/Speicherbedarf bewusst zurückgestellt.
+- Weiter vorhanden: Skins, Sprecherrahmen, 1440p30/60-Presets, Voice-/Game-Audio-Mixer, Soundboard, Emoji-Reaktionen, Profile, Kalender und 36 Fußballweisheiten.
+
+## Nächster verpflichtender Schritt
+- **`docs/WINDOWS_HANDOFF.md`** enthält einen vollständigen Codex-Arbeitsauftrag, Tests, Sicherung der alten Nutzerdateien, Zwei-PC-Latenz-/Bild-/Tontests, 1440p60-Benchmark und Release-Gates.
+- **`docs/HARDWARE_ACCEPTANCE.md`** ist die systematische Abnahmecheckliste; `docs/SECURITY_AUDIT.md` listet offene Risiken.
+- Realer Test auf dem Windows-PC notwendig: Mikrofon, System-/Spielaudio, Netzwerkabbruch und RAM/CPU/GPU mit zwei realen 1440p60-Streams, Upgrade aus installierter 0.3.2, Windows-Codesignatur und Nutzereinwilligung.
+- Automatische externe E-Mail-/WhatsApp-Zustellung benötigt einen autorisierten Provider, Einwilligung und gegebenenfalls eigene Gebühren.
+- Kein unabhängiger Pentest und keine echte langlaufende Windows-Abnahme erfolgt; diese nicht als erledigt bezeichnen.
+
+---
+
 # AKTUELLSTE ÜBERGABE – 16.11.2026 / KZ-020 und KZ-014
 
 Diese Kopfsektion ist aktueller als alle nachfolgenden historischen Statusangaben.
