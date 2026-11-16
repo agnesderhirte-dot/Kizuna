@@ -49,6 +49,16 @@ test('ICS can be imported by calendar apps and escapes user text',()=>{
  assert.ok(cal.includes('DTSTART:'));
  assert.ok(cal.includes('UID:'));
 });
+test('calendar exports European weekly meetings with wall-clock timezone and DST transitions',()=>{
+ const summer=calendar.toICS([{...item(Date.UTC(2027,6,17,18,0)),repeat:'weekly'}],'Europe/Berlin');
+ const winter=calendar.toICS([{...item(Date.UTC(2027,0,17,19,0)),repeat:'weekly'}],'Europe/Berlin');
+ assert.ok(summer.includes('BEGIN:VTIMEZONE'));
+ assert.ok(summer.includes('TZNAME:CEST'));
+ assert.ok(summer.includes('TZNAME:CET'));
+ assert.ok(summer.includes('DTSTART;TZID=Europe/Berlin:20270717T200000'));
+ assert.ok(winter.includes('DTSTART;TZID=Europe/Berlin:20270117T200000'));
+ assert.ok(summer.includes('RRULE:FREQ=WEEKLY'));
+});
 test('external message sharing is always a manual user action',()=>{
  const main=fs.readFileSync(path.join(__dirname,'../desktop/main.cjs'),'utf8');
  const ui=fs.readFileSync(path.join(__dirname,'../src/GameCalendar.tsx'),'utf8');
