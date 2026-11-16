@@ -103,6 +103,7 @@ else {
   handle('saveSession',item=>calendar.save(db,item));
   handle('deleteSession',id=>calendar.remove(db,id));
   handle('copySession',item=>{clipboard.writeText(calendar.shareText(item));return true;});
+  handle('copyDiagnostics',value=>{clipboard.writeText(z.string().min(1).max(12000).parse(value));return true;});
   handle('shareSession',async raw=>{
    const action=z.object({item:calendar.meeting,channel:z.enum(['email','whatsapp'])}).strict().parse(raw);
    const body=calendar.shareText(action.item).slice(0,900);
