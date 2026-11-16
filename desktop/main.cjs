@@ -98,6 +98,15 @@ else {
    }
    return installed;
   });
+  handle('deleteSound',arg=>{
+   const id=z.string().regex(/^[0-9a-f]{64}$/).parse(arg);
+   const item=db.prepare('SELECT kind FROM assets WHERE id=?').get(id);
+   if(!item)return false;
+   if(item.kind!=='sound')throw Error('Nur Sounds dürfen über die Soundbibliothek entfernt werden.');
+   fs.rmSync(assetFile(id),{force:true});
+   db.prepare('DELETE FROM assets WHERE id=?').run(id);
+   return true;
+  });
   handle('asset',arg=>{const file=assetFile(arg);const meta=db.prepare('SELECT mime FROM assets WHERE id=?').get(arg);if(!meta)throw Error('Unbekanntes Asset');return {bytes:new Uint8Array(fs.readFileSync(file)),mime:meta.mime};});
   handle('listSessions',()=>calendar.list(db));
   handle('saveSession',item=>calendar.save(db,item));
