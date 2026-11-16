@@ -1,10 +1,10 @@
 const {Notification,app,BrowserWindow,ipcMain,session,desktopCapturer,dialog,safeStorage,shell,clipboard,globalShortcut}=require('electron');
 const path=require('node:path');const fs=require('node:fs');const crypto=require('node:crypto');const os=require('node:os');const {pathToFileURL}=require('node:url');
 const {DatabaseSync}=require('node:sqlite');const {WebSocket}=require('ws');const {z}=require('zod');
-const security=require('./security.cjs');const {createSignaling}=require('./signaling.cjs');
+const security=require('./security.cjs');const calendar=require('./calendar.cjs');const {createSignaling}=require('./signaling.cjs');
 app.setPath('userData',process.env.VOXRALLY_TEST_DATA?path.resolve(process.env.VOXRALLY_TEST_DATA):path.join(app.getPath('appData'),'VoxRally'));
 app.setName('KIZUNA');
-let mediaActive=true,win,db,server,socket,pendingCapture,activeRoom,activeInvite,pendingInvite,retryTimer,connectionSpec,retryCount=0;
+let mediaActive=true,win,db,server,socket,pendingCapture,activeRoom,activeInvite,pendingInvite,retryTimer,calendarTimer,connectionSpec,retryCount=0;
 const page=pathToFileURL(path.join(__dirname,'../dist/index.html')).href;
 const defaults={skin:'original',cameraDevice:'',cameraResolution:'1080',cameraBitrate:4,cameraBackground:'',name:'Spieler',theme:'dark',accent:'#69e3b1',mic:'',output:'',profile:'detail',resolution:'native',fps:'30',bitrate:20,noise:true,echo:true,gain:false,systemAudio:true,background:'',turnUrl:'',turnUser:'',turnPassword:''};
 function emit(data){if(win&&!win.isDestroyed())win.webContents.send('vox:event',data);}
@@ -37,7 +37,7 @@ else {
  app.on('second-instance',(_e,args)=>{const link=args.find(a=>a.startsWith('voxrally:'));if(link){try{security.invite(link);pendingInvite=link;emit({type:'invite',value:link});}catch{}}win?.show();});
  app.whenReady().then(()=>{
   fs.mkdirSync(path.join(app.getPath('userData'),'assets'),{recursive:true});db=new DatabaseSync(path.join(app.getPath('userData'),'voxrally.sqlite'));
-  db.exec('PRAGMA journal_mode=WAL; CREATE TABLE IF NOT EXISTS kv(key TEXT PRIMARY KEY,value TEXT NOT NULL); CREATE TABLE IF NOT EXISTS assets(id TEXT PRIMARY KEY,name TEXT NOT NULL,kind TEXT NOT NULL,mime TEXT NOT NULL); CREATE TABLE IF NOT EXISTS messages(id TEXT NOT NULL,room TEXT NOT NULL,sender TEXT NOT NULL,name TEXT NOT NULL,text TEXT NOT NULL,time INTEGER NOT NULL,PRIMARY KEY(room,id)); PRAGMA user_version=1;');
+  db.exec('PRAGMA journal_mode=WAL; CREATE TABLE IF NOT EXISTS kv(key TEXT PRIMARY KEY,value TEXT NOT NULL); CREATE TABLE IF NOT EXISTS assets(id TEXT PRIMARY KEY,name TEXT NOT NULL,kind TEXT NOT NULL,mime TEXT NOT NULL); CREATE TABLE IF NOT EXISTS messages(id TEXT NOT NULL,room TEXT NOT NULL,sender TEXT NOT NULL,name TEXT NOT NULL,text TEXT NOT NULL,time INTEGER NOT NULL,PRIMARY KEY(room,id)); PRAGMA user_version=1;');calendar.setup(db);
   if(!get('identity',null)){const pair=crypto.generateKeyPairSync('ed25519');if(!safeStorage.isEncryptionAvailable())throw Error('Windows Secure Storage nicht verfügbar');set('identity',{publicKey:pair.publicKey.export({type:'spki',format:'pem'}),privateKey:safeStorage.encryptString(pair.privateKey.export({type:'pkcs8',format:'pem'})).toString('base64')});}
   const initial=process.argv.find(a=>a.startsWith('voxrally:'));if(initial){try{security.invite(initial);pendingInvite=initial;}catch{}}
   session.defaultSession.setPermissionRequestHandler((wc,permission,cb,details)=>cb(wc===win?.webContents&&wc.getURL()===page&&details.isMainFrame!==false&&['media','display-capture','fullscreen'].includes(permission)));
@@ -72,14 +72,36 @@ else {
   handle('signal',arg=>{const m=z.object({to:security.id,data:z.object({description:z.object({type:z.enum(['offer','answer']),sdp:z.string().max(58000)}).optional(),candidate:z.unknown().optional()}).strict()}).strict().parse(arg);if(!socket||socket.readyState!==WebSocket.OPEN||JSON.stringify(m).length>60000)throw Error('Keine Verbindung');socket.send(JSON.stringify({v:1,type:'signal',...m}));return true;});
   handle('importAsset',async arg=>{const kind=z.enum(['background','sound','emoji']).parse(arg);const picked=await dialog.showOpenDialog(win,{properties:['openFile'],filters:[{name:kind,extensions:kind==='sound'?['wav','mp3','ogg','flac']:['png','jpg','jpeg','webp','gif']}]});if(picked.canceled)return null;const file=picked.filePaths[0];if(fs.statSync(file).size>10*1024*1024)throw Error('Maximal 10 MB');if(db.prepare('SELECT count(*) AS n FROM assets').get().n>=100)throw Error('Bibliothek maximal 100 Dateien');const a=assetInfo(fs.readFileSync(file),kind);if(a.bytes.length>16*1024*1024)throw Error('Dekodierte Datei zu groß');const id=crypto.createHash('sha256').update(a.bytes).digest('hex');fs.writeFileSync(assetFile(id),a.bytes);const item={id,name:path.basename(file).slice(0,80),kind,mime:a.mime};db.prepare('INSERT OR REPLACE INTO assets VALUES(?,?,?,?)').run(id,item.name,kind,a.mime);return item;});
   handle('asset',arg=>{const file=assetFile(arg);const meta=db.prepare('SELECT mime FROM assets WHERE id=?').get(arg);if(!meta)throw Error('Unbekanntes Asset');return {bytes:new Uint8Array(fs.readFileSync(file)),mime:meta.mime};});
+  handle('listSessions',()=>calendar.list(db));
+  handle('saveSession',item=>calendar.save(db,item));
+  handle('deleteSession',id=>calendar.remove(db,id));
+  handle('copySession',item=>{clipboard.writeText(calendar.shareText(item));return true;});
+  handle('exportSessions',async()=>{
+   const sessions=calendar.list(db);if(!sessions.length)throw Error('Keine Spieltermine vorhanden');
+   const result=await dialog.showSaveDialog(win,{title:'Spieltermine als Kalenderdatei speichern',defaultPath:'KIZUNA-Spielabende.ics',filters:[{name:'Kalender (.ics)',extensions:['ics']}]});
+   if(result.canceled||!result.filePath)return false;
+   fs.writeFileSync(result.filePath,calendar.toICS(sessions),'utf8');return true;
+  });
   handle('history',room=>db.prepare('SELECT * FROM (SELECT * FROM messages WHERE room=? ORDER BY time DESC LIMIT 200) ORDER BY time').all(security.id.parse(room)));
   handle('message',arg=>{const m=z.object({id:security.id,sender:security.id,name:security.name,text:z.string().min(1).max(4000),time:z.number().int().nonnegative()}).strict().parse(arg);if(!activeRoom)throw Error('Kein Raum');db.prepare('INSERT OR IGNORE INTO messages VALUES(?,?,?,?,?,?)').run(m.id,activeRoom,m.sender,m.name,m.text,m.time);db.prepare('DELETE FROM messages WHERE rowid NOT IN (SELECT rowid FROM messages ORDER BY time DESC LIMIT 20000)').run();return true;});
   handle('openLink',async arg=>{const u=new URL(z.string().max(2048).parse(arg));if(u.protocol!=='https:'||u.username||u.password)throw Error('Nur HTTPS-Links');await shell.openExternal(u.href);});
   win=new BrowserWindow({width:1400,height:920,minWidth:950,minHeight:650,backgroundColor:'#101319',title:'KIZUNA',autoHideMenuBar:true,webPreferences:{preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true,webSecurity:true,allowRunningInsecureContent:false,backgroundThrottling:false}});
   win.webContents.on('will-navigate',e=>e.preventDefault());win.webContents.setWindowOpenHandler(()=>({action:'deny'}));win.webContents.on('will-attach-webview',e=>e.preventDefault());
+  calendarTimer=setInterval(()=>{
+   try{
+    for(const event of calendar.remindersDue(db)){
+     if(Notification.isSupported()){
+      const note=new Notification({title:'KIZUNA · Spielabend',body:event.game+' · '+event.title+' · '+new Date(event.occurrence).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})});
+      note.on('click',()=>{if(win&&!win.isDestroyed()){win.show();win.focus();emit({type:'session-reminder',id:event.id});}});
+      note.show();
+     }
+     emit({type:'session-reminder',id:event.id,title:event.title,game:event.game});
+    }
+   }catch(error){console.warn('Calendar reminder:',error instanceof Error?error.message:'unknown');}
+  },30000);
   win.webContents.once('did-finish-load',()=>require('./central-updater.cjs').start({app,dialog,win:()=>win,isBusy:()=>!!activeRoom||mediaActive}));
   win.loadURL(page);if(app.isPackaged&&!process.env.VOXRALLY_TEST_DATA)app.setAsDefaultProtocolClient('voxrally');
   for(const [key,action]of [['CommandOrControl+Shift+M','mute'],['CommandOrControl+Shift+D','deafen']])globalShortcut.register(key,()=>emit({type:'hotkey',action}));
  });
- app.on('window-all-closed',()=>app.quit());app.on('will-quit',()=>{globalShortcut.unregisterAll();disconnect();server?.close();db?.close();});
+ app.on('window-all-closed',()=>app.quit());app.on('will-quit',()=>{clearInterval(calendarTimer);globalShortcut.unregisterAll();disconnect();server?.close();db?.close();});
 }
