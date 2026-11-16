@@ -1,6 +1,11 @@
 # Changelog
 
-## Unreleased – Entwicklungsbranch (16.11.2026, noch nicht installiert oder freigegeben)
+## Unreleased – geplante KIZUNA 0.4.0 (16.11.2026, noch nicht installiert oder freigegeben)
+- Mikrofon- und Bildschirmfreigaben werden nach einem Raumwechsel/Abbruch nicht nachträglich wieder aktiviert.
+- SQLite-Upgrade von 0.3.2 auf 0.4.0 mit transaktionaler Migration, Schema- und Datenerhaltprüfung (automatisiert).
+- Lokalen LAN-Signaling-Server beim Verlassen von Räumen schließen und ausstehende Capture-Tickets invalidieren.
+- Profilbild im eigenen Seitenleistenprofil und korrekte Spielkalender-Überschrift anzeigen.
+- Sicherheitsprüfung für Produktions- und Entwicklungsabhängigkeiten um High/Critical-Meldungen erweitert; zwei Moderate in Dev-Abhängigkeiten bleiben dokumentiert.
 - 36 eigene Fußballweisheiten: bei jedem Start ein neuer Offline-Spruch, ohne unmittelbare Wiederholung, im gewählten Skin, schließbar.
 - Weniger unnötige Electron-Medienstatusaufrufe und keine Audio-Ausgabe-Neukonfiguration bei Lautstärkebewegungen.
 - Soundboard-Dateien nach Stopp, Fehler und Raumwechsel zuverlässiger aus dem Speicher entfernen.
