@@ -2,6 +2,15 @@
 
 **Status:** Vorbereitung für Version 0.4.0 im Branch `feat/retro-modern-skins`, Draft-PR #1. `main` und bestehende Installationen sind **unverändert**. Es gibt **keinen** freigegebenen Installer und **keine** automatische Veröffentlichung.
 
+## VORRANGIG: Gewünschtes Update **in der vorhandenen KIZUNA-App**
+Der Nutzer wünscht **keine manuelle EXE-Neuinstallation**. Der alte Client 0.3.2 besitzt bereits einen P2P-Updater. Der sichere Weg ist in [IN_APP_UPDATE.md](IN_APP_UPDATE.md) detailliert beschrieben.
+
+- Einen signierten Ed25519-Update-Manifestteil neben dem GitHub-geprüften Updatepaket lokal mit `node scripts/prepare-peer-update.cjs <Installerpfad> <SHA256-Dateipfad>` erzeugen, **nur wenn** der ursprünglich zur installierten Version gehörende private Schlüssel auf dem Windows-PC vorhanden ist.
+- Schlüssel niemals an ChatGPT, GitHub, Codex oder GitHub-Actions-Ausgaben übermitteln; kein Ersatzschlüssel ohne bewusst freigegebene Vertrauensmigration.
+- Bestehende KIZUNA-App: Ein weiterer Teilnehmer stellt das signierte Paket in einem privaten P2P-Raum bereit; der Empfänger klickt „Update herunterladen“ und nach Verlassen des Raums „Geprüftes Update installieren“.
+- Automatische zentrale GitHub-Updates sind für die installierte 0.3.2 mangels aktivierten Releasekanals **nicht möglich**. GitHub-Artefakt allein ist kein installierbares In-App-Update.
+- Falls der ursprüngliche private Schlüssel fehlt oder kein zweiter Peer verfügbar ist, ist dieser Updateweg blockiert; keine Signaturprüfung umgehen.
+
 ## A. Vor dem ersten Test
 
 - Windows 10/11, funktionierendes Mikrofon/Headset, möglichst zwei physische PCs; für reale P2P-Tests zwei unterschiedliche Netzwerkanschlüsse hilfreich.
