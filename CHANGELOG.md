@@ -1,6 +1,10 @@
 # Changelog
 
 ## Unreleased – Entwicklungsbranch (16.11.2026, noch nicht installiert oder freigegeben)
+- 36 eigene Fußballweisheiten: bei jedem Start ein neuer Offline-Spruch, ohne unmittelbare Wiederholung, im gewählten Skin, schließbar.
+- Weniger unnötige Electron-Medienstatusaufrufe und keine Audio-Ausgabe-Neukonfiguration bei Lautstärkebewegungen.
+- Soundboard-Dateien nach Stopp, Fehler und Raumwechsel zuverlässiger aus dem Speicher entfernen.
+- Veraltete Hintergrundbild-Ladevorgänge werden ignoriert.
 - Neun Skins inklusive Winamp Retro, Messenger 2003, Neon Wave und Modern Glass, Skin-Galerie und Streaming-Fokusmodus.
 - Mikrofonbasierte Sprecherumrandung, Fußball-/Gaming-Emojis und speicherbare Reaktionsfavoriten.
 - Bildschirm-Spielton je Teilnehmer separat stummschaltbar, ohne Sprachchat oder Torhymnen zu beeinflussen.
