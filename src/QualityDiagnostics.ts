@@ -37,7 +37,7 @@ export class QualityDiagnostics {
   const outcome:PeerQuality={lines};
   for(const s of stats.values()){
    const kind=s.kind||s.mediaType;
-   if(!['inbound-rtp','outbound-rtp'].includes(s.type)||!['audio','video'].includes(kind))continue;
+   if(!['inbound-rtp','outbound-rtp'].includes(s.type)||!kind||!['audio','video'].includes(kind))continue;
    const key=`${peerId}:${s.id}`;
    const old=this.old.get(key);
    const elapsed=old&&s.timestamp>old.timestamp?s.timestamp-old.timestamp:undefined;
