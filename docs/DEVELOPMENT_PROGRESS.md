@@ -103,3 +103,12 @@ Commit, betroffene Dateien, Status der Roadmap, nachweislich ausgeführte Tests 
 - GitHub-Workflow prüft `pnpm audit --prod --audit-level high` **und** `pnpm audit --audit-level high`; der jüngste geprüfte Lauf meldete zwei **moderate** Entwicklungsabhängigkeits-Advisories, aber keine High/Critical. Details bei Bedarf im CI-Protokoll prüfen.
 - Nitro-/Komfort-Nutzwertabgleich: `docs/NITRO_FEATURE_REVIEW.md`. Konkrete Windows-Codex-Übergabe: `docs/WINDOWS_HANDOFF.md`.
 - Keine Real-PC-, Windows-Ende-zu-Ende-, 1440p60-/Audio-Soak-, signierte Upgrade- oder Zertifikatsprüfung durchgeführt. **Keine Freigabe, kein Merge, kein Installer, keine Nachricht an andere Nutzer.**
+
+## 2026-11-16 – nachträglicher Sicherheitsdurchlauf (GitHub-only)
+- Baseline vor diesem Durchlauf: 111 erfolgreiche Node-Tests, TypeScript/Vite-Build und Windows-Paketsmoke beim Commit `d38846f...` grün.
+- `.github/workflows/validate.yml`: Dev-Audit diagnostiziert nun moderate Advisories mit Namen/Pfad. Befund: zweimal `minimatch`, Advisory `GHSA-g3hv-75wg-m249`, Versionen `9.0.9` und `10.2.6` über `electron-builder`, nicht der Runtime.
+- `src/updates.ts`: Updateangebote räumlich getrennt; bei Room-Exit werden alte Offers/Versionen zurückgesetzt, alte Dateidialoge und abgebrochene Downloadstarts ignoriert. Erfolgreich fertiggeladener, kryptografisch geprüfter Installer bleibt installierbar, auch wenn der Raum geschlossen ist.
+- `tests/update-room-isolation.test.cjs`: fünf neue Regressionstests zu doppelten Kanälen, asynchronen Dialogen, Updateannahme, Versionsbannern und Erhalt bereits geprüfter Downloads.
+- `desktop/migrations.cjs`: v1-Datenbank wird vor der v2-Migration durch `VACUUM INTO` konsistent gesichert; Integrität und Version vor weiteren Schritten geprüft, bestehende Backups bleiben unberührt. `desktop/main.cjs` bindet den privaten Snapshotpfad im bestehenden UserData-Verzeichnis.
+- `tests/migrations.test.cjs`: weitere Tests für erhaltenes v1-Snapshot, beschädigtes Backup und kein wiederholtes Backup nach erfolgreicher Migration.
+- Nicht als abgeschlossen deklarieren: echte Windows-Rücksicherung, P2P-Updateinstallation, Sicherheitsprüfung der Build-Tool-Major-Upgrades, Zwei-PC-Audio/1440p60. Kein Merge, kein Installer.
