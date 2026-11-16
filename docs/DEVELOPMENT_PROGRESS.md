@@ -92,3 +92,14 @@ Commit, betroffene Dateien, Status der Roadmap, nachweislich ausgeführte Tests 
 - Regressionstests: `tests/football-wisdom.test.cjs`, `tests/runtime-performance.test.cjs`; bestehende Tests bei geänderter Audio-Ausgaberoutine angepasst.
 - **GitHub Actions**: [Run 43835700399](https://github.com/agnesderhirte-dot/Kizuna/actions/runs/43835700399), `pnpm build` erfolgreich, **83 Tests bestanden, 0 fehlgeschlagen, 1 übersprungen** und `pnpm audit --prod --audit-level high` erfolgreich.
 - Unverändert offen: Windows-GUI, realer Audio-/1440p60-Benchmark, unabhängige Schlussprüfung KZ-014 und sichere signierte Releasekette. Keine Freigabe, keine Änderung der installierten Version.
+
+## 2026-11-16 – Weitere GitHub-Entwicklung ohne Codex (KZ-021–024)
+
+- Medienfreigaben bleiben an die aktuelle Sitzung gebunden: `sessionEpoch` wird bei Einstieg, Ausstieg und Unmount erhöht. Zu spät aus `getUserMedia` oder `getDisplayMedia` eintreffende Streams werden sofort gestoppt. Alte `onended`-Callbacks können einen neueren Bildschirm nicht mehr abschalten.
+- `desktop/main.cjs`: `stopHosting` schließt den lokalen Signaling-WebSocket-Server beim Raumverlassen oder Wechsel von LAN zu Cloud und umgekehrt. `disconnect()` löscht ausstehende Capture-Tickets.
+- `desktop/migrations.cjs`: versioniertes, transaktionales SQLite-Upgrade (v1→v2). Tabellen-/Spaltenvalidierung, Rollback bei Schemafehlern, keine Rücksetzung von `PRAGMA user_version` bei jedem Start. Migrationstest bestätigt Erhalt von Settings, Assets und alten Nachrichten.
+- Im Branch **0.4.0** als nächstes, noch nicht freigegebenes Release vorbereitet. App-ID `de.voxrally.desktop`, Protokoll `voxrally://`, EXE-Name und Nutzerdatenpfad `VoxRally` bleiben für Upgrades gleich. Zentraler Updatekanal bleibt deaktiviert bis zur Codesignatur und Windows-Abnahme.
+- Tests `media-capture-lifecycle.test.cjs`, `migrations.test.cjs`, `room-teardown.test.cjs`, `release-readiness.test.cjs`, `ui-accessibility.test.cjs` hinzugefügt.
+- GitHub-Workflow prüft `pnpm audit --prod --audit-level high` **und** `pnpm audit --audit-level high`; der jüngste geprüfte Lauf meldete zwei **moderate** Entwicklungsabhängigkeits-Advisories, aber keine High/Critical. Details bei Bedarf im CI-Protokoll prüfen.
+- Nitro-/Komfort-Nutzwertabgleich: `docs/NITRO_FEATURE_REVIEW.md`. Konkrete Windows-Codex-Übergabe: `docs/WINDOWS_HANDOFF.md`.
+- Keine Real-PC-, Windows-Ende-zu-Ende-, 1440p60-/Audio-Soak-, signierte Upgrade- oder Zertifikatsprüfung durchgeführt. **Keine Freigabe, kein Merge, kein Installer, keine Nachricht an andere Nutzer.**
