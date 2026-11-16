@@ -37,6 +37,8 @@ Stand: 2026-11-16. Referenz: `main` / KIZUNA 0.3.2, vorbereitete 0.4.0 im Entwic
 | KZ-022 | P0 | Bestehende Nutzerdaten beim Upgrade transaktional migrieren | GPT-6 Extra High | SQLite-v1→v2-Tests bestanden; installierter Windows-Upgrade noch ausstehend | Keine rückwirkende Versionsüberschreibung, Schema-/Spaltenprüfung, Rollback |
 | KZ-023 | P1 | Ungenutzte LAN-Signaling-Server bei Raumwechsel schließen | GPT-6 High | Unit-/Integrationstest; Windows-Portfreigabe offen | Listener schließen, Capture-Ticket verwerfen |
 | KZ-024 | P1 | Runtime- und Dev-Dependency-Audit und Release-Gates | GPT-6 High | CI-Test erfolgreich; zwei moderate Dev-Advisories dokumentieren | Kein blindes Updating, keine bekannte High/Critical-Advisory, signierter Release weiterhin erforderlich |
+| KZ-025 | P0 | V1-Datenbank automatisch und konsistent vor Migration sichern | GPT-6 High | CI-Tests erstellt; reale Windows-Datenprobe ausstehend | VACUUM INTO-Snapshot mit Integritäts-/Versionsprüfung, beschädigte Backups blockieren Upgrade |
+| KZ-026 | P0 | Updatefreigaben und asynchrone Updateaktionen an den Raum binden | GPT-6 High | CI-getestet; Windows-Update-Abnahme ausstehend | Keine unbeabsichtigte Veröffentlichung von Updates aus alten Räumen; bereits geprüfte Installer bleiben bereit |
 
 ## Arbeitsreihenfolge
 1. Baseline und PR #1 auf technische Probleme prüfen, einschließlich sicherem gespeicherten Fortschritt.
@@ -96,3 +98,9 @@ Nachweis: GitHub Actions [Run 43820759138](https://github.com/agnesderhirte-dot/
 - **KZ-009 Nitro-Nutzwertabgleich**: `docs/NITRO_FEATURE_REVIEW.md` dokumentiert, welche Komfortfunktionen sinnvoll sind und welche aus Bandbreiten-/Kosten-/Lizenzgründen bewusst entfallen.
 - **Windows-Übergabe**: `docs/WINDOWS_HANDOFF.md` enthält konkrete Anweisungen für Codex, zwei PCs, Ton-/1440p60-Messung, Appdatenmigration, Signaturen, Versionierung und Releaseentscheidung.
 - Der Entwicklungstand benötigt **kein Codex-Guthaben**, jedoch ChatGPT-/GitHub-Ressourcen. Die nächste sachliche Hürde ist die reale Windows-Abnahme: keine produktive Freigabe ohne unterschriebene/validierte Releasekette.
+
+### Nachprüfung der GitHub-Arbeiten / 16.11.2026 (zweiter Durchlauf)
+- Zwei transitive **moderate** Advisories konkretisiert: `minimatch@10.2.6` über `electron-builder > app-builder-lib > minimatch` sowie `minimatch@9.0.9` über `electron-builder > app-builder-lib > @electron/universal > minimatch`, Advisory [GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249). Produktive Laufzeit-Abhängigkeiten nicht betroffen. Keine pauschale Major-11-Override ohne nachgewiesene electron-builder-Kompatibilität und realen Windows-Installer-Test.
+- `src/updates.ts` (`KZ-026`) räumt signierte Raum-Updateangebote bei Raumwechsel ab; ausstehende Berechtigungs-/Dateiauswahlergebnisse aus alten Räumen werden ignoriert, Downloadfreigaben nach Raumwechsel abgebrochen. Der bereits **geprüfte** Installer bleibt für die manuelle Installation nach Raumverlassen erhalten.
+- `desktop/migrations.cjs` (`KZ-025`): vor dem ersten Upgrade einer bestehenden v1-Datenbank SQLite-**VACUUM-INTO**-Snapshot im vorhandenen privaten UserData-Verzeichnis anlegen und auf Integrity + Version 1 prüfen. Beschädigte Backups verhindern die Migration statt Daten zu riskieren; Backup nicht automatisch überschreiben.
+- Neue Tests: `tests/update-room-isolation.test.cjs` und Erweiterungen `tests/migrations.test.cjs`; Test-/CI-Stand zum neuesten Commit jeweils anhand Actions prüfen.
