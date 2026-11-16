@@ -103,6 +103,16 @@ else {
   handle('saveSession',item=>calendar.save(db,item));
   handle('deleteSession',id=>calendar.remove(db,id));
   handle('copySession',item=>{clipboard.writeText(calendar.shareText(item));return true;});
+  handle('shareSession',async raw=>{
+   const action=z.object({item:calendar.meeting,channel:z.enum(['email','whatsapp'])}).strict().parse(raw);
+   const body=calendar.shareText(action.item).slice(0,900);
+   if(action.channel==='email'){
+    const url='mailto:?subject='+encodeURIComponent('KIZUNA · '+action.item.title)+'&body='+encodeURIComponent(body);
+    await shell.openExternal(url);return true;
+   }
+   await shell.openExternal('https://wa.me/?text='+encodeURIComponent(body));return true;
+  });
+
   handle('exportSessions',async()=>{
    const sessions=calendar.list(db);if(!sessions.length)throw Error('Keine Spieltermine vorhanden');
    const result=await dialog.showSaveDialog(win,{title:'Spieltermine als Kalenderdatei speichern',defaultPath:'KIZUNA-Spielabende.ics',filters:[{name:'Kalender (.ics)',extensions:['ics']}]});
