@@ -132,3 +132,8 @@
 .audio-check-buttons button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 /* Network measurements are text only; no extra live graphs/animation. */
 .quality{overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+
+
+.stream-presets{display:grid;grid-template-columns:1fr;gap:6px;margin:12px 0}
+.stream-presets button{font-size:11px;text-align:left;padding:9px 10px;white-space:normal}
+.stream-presets button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
