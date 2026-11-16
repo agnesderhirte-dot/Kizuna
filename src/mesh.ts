@@ -1,9 +1,10 @@
 import type {Chat,Settings} from './types';
 import {isAllowedReaction} from './reactions';
-type Peer={incoming:Promise<void>;retry?:ReturnType<typeof setTimeout>;restarts:number;id:string;name:string;pc:RTCPeerConnection;dc?:RTCDataChannel;making:boolean;answerPending:boolean;ignore:boolean;candidates:RTCIceCandidateInit[];streams:Map<string,MediaStream>;labels:Record<string,string>;count:number;since:number;chatCount:number;soundAt:number;soundTransferAt:number;soundAck:boolean;readySounds:Set<string>;pendingSoundReady:Map<string,{resolve:(ok:boolean)=>void;timeout:ReturnType<typeof setTimeout>}>;offset:number;speaking:boolean;speechTimeout?:ReturnType<typeof setTimeout>;reactionStart:number;reactionCount:number;transfer?:{hash:string;mime:string;size:number;parts:string[];received:number;expires:number}};
+export type SharedProfile={photo:string;bio:string;game:string};
+type Peer={profile?:SharedProfile;incoming:Promise<void>;retry?:ReturnType<typeof setTimeout>;restarts:number;id:string;name:string;pc:RTCPeerConnection;dc?:RTCDataChannel;making:boolean;answerPending:boolean;ignore:boolean;candidates:RTCIceCandidateInit[];streams:Map<string,MediaStream>;labels:Record<string,string>;count:number;since:number;chatCount:number;soundAt:number;soundTransferAt:number;soundAck:boolean;readySounds:Set<string>;pendingSoundReady:Map<string,{resolve:(ok:boolean)=>void;timeout:ReturnType<typeof setTimeout>}>;offset:number;speaking:boolean;speechTimeout?:ReturnType<typeof setTimeout>;reactionStart:number;reactionCount:number;transfer?:{hash:string;mime:string;size:number;parts:string[];received:number;expires:number}};
 export type Remote={peer:string;name:string;stream:MediaStream;kind:string};
 export class Mesh {
- peers=new Map<string,Peer>();self='';local=new Map<string,MediaStream>();sounds=new Map<string,Blob>();onChange=()=>{};onSpeaking=()=>{};localSpeaking=false;onChat=(m:Chat)=>{};onError=(s:string)=>{};onSound=(b:Blob)=>{};onReaction=(_id:string,_name:string,_emoji:string)=>{};private localReactionStart=0;private localReactionCount=0;
+ peers=new Map<string,Peer>();profile:SharedProfile={photo:'',bio:'',game:''};self='';local=new Map<string,MediaStream>();sounds=new Map<string,Blob>();onChange=()=>{};onSpeaking=()=>{};localSpeaking=false;onChat=(m:Chat)=>{};onError=(s:string)=>{};onSound=(b:Blob)=>{};onReaction=(_id:string,_name:string,_emoji:string)=>{};private localReactionStart=0;private localReactionCount=0;
  onUpdateChannel=(id:string,name:string,channel:RTCDataChannel)=>{};
  constructor(public settings:Settings){}
  transport:(message:{to:string;data:unknown})=>Promise<unknown>=(message)=>window.vox.signal(message);
@@ -32,7 +33,7 @@ export class Mesh {
    else if(data.candidate&&!p.ignore){if(pc.remoteDescription)await pc.addIceCandidate(data.candidate);else if(p.candidates.length<128)p.candidates.push(data.candidate);}
   }catch(e){if(!p.ignore){console.warn('RTC negotiation failed',e instanceof Error?e.name:'Error',pc.signalingState);this.onError('Medienverhandlung fehlgeschlagen. Verbindung wird erneut versucht.');this.recover(p,1000);}}finally{p.answerPending=false;}
  }
- bind(p:Peer,dc:RTCDataChannel){p.dc=dc;dc.bufferedAmountLowThreshold=65536;dc.onopen=()=>{this.send(p,{type:'labels',labels:this.labels()});this.send(p,{type:'ping',time:Date.now()});this.send(p,{type:'capabilities',soundAck:true});if(this.localSpeaking)this.send(p,{type:'speaking',active:true});this.onChange();};dc.onmessage=e=>{void this.data(p,e.data).catch(()=>this.onError('Ungültige Peer-Daten verworfen'));};}
+ bind(p:Peer,dc:RTCDataChannel){p.dc=dc;dc.bufferedAmountLowThreshold=65536;dc.onopen=()=>{this.send(p,{type:'labels',labels:this.labels()});this.send(p,{type:'ping',time:Date.now()});this.send(p,{type:'capabilities',soundAck:true});this.send(p,{type:'profile',...this.profile});if(this.localSpeaking)this.send(p,{type:'speaking',active:true});this.onChange();};dc.onmessage=e=>{void this.data(p,e.data).catch(()=>this.onError('Ungültige Peer-Daten verworfen'));};}
  labels(){return Object.fromEntries([...this.local].map(([kind,s])=>[s.id,kind]));}
  send(p:Peer,m:Record<string,unknown>):boolean{const text=JSON.stringify({v:1,...m});if(p.dc?.readyState!=='open'||p.dc.bufferedAmount>=512*1024||text.length>20000)return false;p.dc.send(text);return true;}
  broadcast(m:Record<string,unknown>){for(const p of this.peers.values())this.send(p,m);}
@@ -40,6 +41,11 @@ export class Mesh {
   if(typeof raw!=='string'||raw.length>20000)return;const now=Date.now();if(now-p.since>1000){p.count=0;p.chatCount=0;p.since=now;}if(++p.count>150){p.dc?.close();return;}
   const m=JSON.parse(raw);if(!m||m.v!==1)return;
   if(m.type==='labels'&&m.labels&&typeof m.labels==='object'){const entries=Object.entries(m.labels);if(entries.length<=4&&entries.every(([k,v])=>k.length<=80&&['voice','screen','camera'].includes(String(v)))){p.labels=m.labels;for(const id of p.streams.keys())if(!(id in p.labels))p.streams.delete(id);this.onChange();}}
+  else if(m.type==='profile'&&typeof m.photo==='string'&&typeof m.bio==='string'&&typeof m.game==='string'
+   &&m.bio.length<=160&&m.game.length<=90&&m.photo.length<=17000
+   &&(m.photo===''||/^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/.test(m.photo))){
+   p.profile={photo:m.photo,bio:m.bio,game:m.game};this.onChange();
+  }
   else if(m.type==='speaking'&&typeof m.active==='boolean'){
    clearTimeout(p.speechTimeout);
    if(p.speaking!==m.active){p.speaking=m.active;this.onSpeaking();}
@@ -73,6 +79,10 @@ export class Mesh {
   }
  }
  sendReaction(emoji:string):boolean{if(!isAllowedReaction(emoji))return false;const now=Date.now();if(now-this.localReactionStart>=3000){this.localReactionStart=now;this.localReactionCount=0;}if(++this.localReactionCount>6)return false;this.broadcast({type:'reaction',emoji});return true;}
+ setProfile(profile:SharedProfile){
+  if(profile.bio.length>160||profile.game.length>90||profile.photo.length>17000||!(profile.photo===''||/^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/.test(profile.photo)))throw Error('Ungültiges Profilbild');
+  this.profile={...profile};this.broadcast({type:'profile',...this.profile});this.onChange();
+ }
  setSpeaking(active:boolean){if(this.localSpeaking!==active){this.localSpeaking=active;this.onSpeaking();}this.broadcast({type:'speaking',active});}
  setLocal(kind:string,stream?:MediaStream){if(kind==='voice'&&!stream)this.setSpeaking(false);const old=this.local.get(kind);for(const p of this.peers.values()){if(old)for(const sender of p.pc.getSenders())if(sender.track&&old.getTracks().includes(sender.track))p.pc.removeTrack(sender);if(stream)for(const t of stream.getTracks())p.pc.addTrack(t,stream);}old?.getTracks().forEach(t=>t.stop());if(stream)this.local.set(kind,stream);else this.local.delete(kind);this.broadcast({type:'labels',labels:this.labels()});this.onChange();void this.bitrate().catch(()=>{});}
  async bitrate(){for(const p of this.peers.values())for(const sender of p.pc.getSenders()){
