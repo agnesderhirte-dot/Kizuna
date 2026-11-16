@@ -14,3 +14,20 @@ test('Later never downloads; active stream appearing while install dialog is ope
  try{updater.emit('update-available',{version:'0.3.3'});await new Promise(r=>setImmediate(r));assert.equal(downloads,0);response=0;updater.emit('update-downloaded');await new Promise(r=>setImmediate(r));assert.equal(installs,0);}finally{controller.stop();}
 });
 test('missing installer fails closed in Windows signature verification',async()=>{assert.ok(await verifyInstaller('C:\\does-not-exist-kizuna.exe','0'.repeat(40)));});
+
+test('central updates show concise, untrusted release descriptions before explicit download',async()=>{
+ const {summarizeReleaseNotes}=require('../desktop/central-updater.cjs');
+ assert.equal(summarizeReleaseNotes('<b>Neuer Skin</b>'), 'Neuer Skin');
+ assert.ok(summarizeReleaseNotes('x'.repeat(2000)).length<=650);
+ assert.equal(summarizeReleaseNotes([{note:'Neue Emojis'},{note:'Besserer Ton'}]),'Neue Emojis\nBesserer Ton');
+ const updater=new EventEmitter();let prompt,downloads=0;
+ updater.downloadUpdate=async()=>downloads++;
+ const controller=wire({updater,isBusy:()=>false,win:()=>null,dialog:{showMessageBox:async(_w,o)=>{prompt=o;return {response:1};}}});
+ try{
+  updater.emit('update-available',{version:'0.4.0',releaseNotes:'<h2>Skins</h2>\nAudio verbessert'});
+  await new Promise(r=>setImmediate(r));
+  assert.match(prompt.detail,/Skins/);
+  assert.match(prompt.detail,/Audio verbessert/);
+  assert.equal(downloads,0);
+ }finally{controller.stop();}
+});
