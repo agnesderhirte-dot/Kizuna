@@ -14,9 +14,35 @@ async function launch(label){const app=await electron.launch({executablePath:pro
  await a.page.getByLabel('Nachricht',{exact:true}).fill('<img src=x onerror=alert(1)> Hallo Beta 🎮');await a.page.getByRole('button',{name:'Senden',exact:true}).click();await b.page.getByText('<img src=x onerror=alert(1)> Hallo Beta 🎮',{exact:true}).waitFor();assert.equal(await b.page.locator('.messages img').count(),0);
  await a.page.getByRole('button',{name:'Mikrofon an',exact:true}).click();await b.page.getByRole('button',{name:'Mikrofon an',exact:true}).click();
  await a.page.waitForFunction(()=>document.querySelector('.hidden-audio audio')?.srcObject?.getAudioTracks().length>0,{},{timeout:15000});
- for(const {page}of [a,b]){await page.evaluate(()=>{navigator.mediaDevices.getDisplayMedia=async()=>{const c=document.createElement('canvas');c.width=1920;c.height=1080;const ctx=c.getContext('2d');let n=0;const timer=setInterval(()=>{ctx.fillStyle=n++%2?'#214e43':'#253e58';ctx.fillRect(0,0,c.width,c.height);ctx.fillStyle='white';ctx.font='60px sans-serif';ctx.fillText('VoxRally synthetic screen '+n,100,200);},100);const s=c.captureStream(30);s.getTracks()[0].addEventListener('ended',()=>clearInterval(timer));return s;};});await page.getByRole('button',{name:'Bildschirm teilen',exact:true}).click();await page.locator('.source-grid button').first().click();}
+ for(const {page}of [a,b]){await page.evaluate(()=>{navigator.mediaDevices.getDisplayMedia=async()=>{const c=document.createElement('canvas');c.width=1920;c.height=1080;const ctx=c.getContext('2d');let n=0;const timer=setInterval(()=>{ctx.fillStyle=n++%2?'#214e43':'#253e58';ctx.fillRect(0,0,c.width,c.height);ctx.fillStyle='white';ctx.font='60px sans-serif';ctx.fillText('VoxRally synthetic screen '+n,100,200);},100);const video=c.captureStream(30);
+ const audioCtx=new AudioContext();
+ const sink=audioCtx.createMediaStreamDestination();
+ const oscillator=audioCtx.createOscillator();
+ const gain=audioCtx.createGain();
+ oscillator.frequency.value=180;
+ gain.gain.value=0.003;
+ oscillator.connect(gain).connect(sink);
+ oscillator.start();
+ void audioCtx.resume().catch(()=>{});
+ video.getVideoTracks()[0].addEventListener('ended',()=>{
+  clearInterval(timer);oscillator.stop();void audioCtx.close();
+ });
+ return new MediaStream([...video.getVideoTracks(),...sink.stream.getAudioTracks()]);};});await page.getByRole('button',{name:'Bildschirm teilen',exact:true}).click();await page.locator('.source-grid button').first().click();}
  await a.page.waitForFunction(()=>document.querySelectorAll('.streams video').length===2,{},{timeout:20000});await b.page.waitForFunction(()=>document.querySelectorAll('.streams video').length===2,{},{timeout:20000});
  await a.page.waitForFunction(()=>[...document.querySelectorAll('.streams video')].every(v=>v.videoWidth===1920),{},{timeout:20000});
+ for(const client of [a,b]){
+  await client.page.waitForFunction(()=>{
+   const video=document.querySelector('figure[data-local="false"][data-kind="screen"] video');
+   return video?.srcObject?.getAudioTracks().length===1&&!video.muted;
+  },{},{timeout:20000});
+  const remoteVideo=client.page.locator('figure[data-local="false"][data-kind="screen"] video');
+  const screenMute=client.page.locator('.stage-toolbar .stream-sound-toggle').first();
+  await screenMute.click();
+  assert.equal(await remoteVideo.evaluate(v=>v.muted),true,'remote game audio must mute independently');
+  assert.ok(await client.page.locator('.hidden-audio audio').evaluateAll(vs=>vs.some(v=>v.srcObject?.getAudioTracks().length>0)),'microphone stays active');
+  await screenMute.click();
+  assert.equal(await remoteVideo.evaluate(v=>v.muted),false,'game audio can be restored');
+ }
  await a.page.screenshot({path:path.join(artifacts,'two-peers.png'),fullPage:true});
  if(process.env.VOXRALLY_LAYOUT_ONLY){
   for(const client of [a,b]){await client.page.evaluate(()=>{const original=navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);navigator.mediaDevices.getUserMedia=constraints=>constraints.video?navigator.mediaDevices.getDisplayMedia():original(constraints);});await client.page.getByRole('button',{name:'Kamera',exact:true}).click();}
