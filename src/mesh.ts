@@ -11,7 +11,7 @@ export function validIceCandidate(raw:unknown):raw is RTCIceCandidateInit{
   &&(c.usernameFragment==null||(typeof c.usernameFragment==='string'&&c.usernameFragment.length<=256));
 }
 
-type Peer={profile?:SharedProfile;incoming:Promise<void>;retry?:ReturnType<typeof setTimeout>;restarts:number;id:string;name:string;pc:RTCPeerConnection;dc?:RTCDataChannel;updatesDc?:RTCDataChannel;making:boolean;answerPending:boolean;ignore:boolean;candidates:RTCIceCandidateInit[];streams:Map<string,MediaStream>;labels:Record<string,string>;count:number;since:number;chatCount:number;soundAt:number;soundTransferAt:number;soundAck:boolean;readySounds:Set<string>;offeredSounds?:Set<string>;pendingSoundReady:Map<string,{resolve:(ok:boolean)=>void;timeout:ReturnType<typeof setTimeout>}>;offset:number;speaking:boolean;speechTimeout?:ReturnType<typeof setTimeout>;reactionStart:number;reactionCount:number;transfer?:{hash:string;mime:string;size:number;parts:string[];received:number;expires:number}};
+type Peer={profile?:SharedProfile;incoming:Promise<void>;pendingSignals:number;pendingSignalBytes:number;retry?:ReturnType<typeof setTimeout>;restarts:number;id:string;name:string;pc:RTCPeerConnection;dc?:RTCDataChannel;updatesDc?:RTCDataChannel;making:boolean;answerPending:boolean;ignore:boolean;candidates:RTCIceCandidateInit[];streams:Map<string,MediaStream>;labels:Record<string,string>;count:number;since:number;chatCount:number;soundAt:number;soundTransferAt:number;soundAck:boolean;readySounds:Set<string>;offeredSounds?:Set<string>;pendingSoundReady:Map<string,{resolve:(ok:boolean)=>void;timeout:ReturnType<typeof setTimeout>}>;offset:number;speaking:boolean;speechTimeout?:ReturnType<typeof setTimeout>;reactionStart:number;reactionCount:number;transfer?:{hash:string;mime:string;size:number;parts:string[];received:number;expires:number}};
 export type Remote={peer:string;name:string;stream:MediaStream;kind:string};
 export class Mesh {
  peers=new Map<string,Peer>();profile:SharedProfile={name:'Spieler',photo:'',bio:'',game:''};self='';local=new Map<string,MediaStream>();sounds=new Map<string,Blob>();onChange=()=>{};onSpeaking=()=>{};localSpeaking=false;onChat=(m:Chat)=>{};onError=(s:string)=>{};onSound=(_blob:Blob,_peerId?:string)=>{};onReaction=(_id:string,_name:string,_emoji:string)=>{};private localReactionStart=0;private localReactionCount=0;private playbackTimers=new Set<ReturnType<typeof setTimeout>>();
@@ -22,7 +22,7 @@ export class Mesh {
  add(id:string,name:string,initiator:boolean){
   if(this.peers.has(id))return;
   const iceServers:RTCIceServer[]=[{urls:'stun:stun.cloudflare.com:3478'}];if(this.settings.turnUrl)iceServers.push({urls:this.settings.turnUrl,username:this.settings.turnUser,credential:this.settings.turnPassword});
-  const pc=new RTCPeerConnection({iceServers,bundlePolicy:"max-bundle"});const p:Peer={incoming:Promise.resolve(),restarts:0,id,name,pc,making:false,answerPending:false,ignore:false,candidates:[],streams:new Map(),labels:{},count:0,chatCount:0,since:Date.now(),soundAt:0,soundTransferAt:0,soundAck:false,readySounds:new Set(),offeredSounds:new Set(),pendingSoundReady:new Map(),offset:0,speaking:false,reactionStart:0,reactionCount:0};this.peers.set(id,p);
+  const pc=new RTCPeerConnection({iceServers,bundlePolicy:"max-bundle"});const p:Peer={incoming:Promise.resolve(),pendingSignals:0,pendingSignalBytes:0,restarts:0,id,name,pc,making:false,answerPending:false,ignore:false,candidates:[],streams:new Map(),labels:{},count:0,chatCount:0,since:Date.now(),soundAt:0,soundTransferAt:0,soundAck:false,readySounds:new Set(),offeredSounds:new Set(),pendingSoundReady:new Map(),offset:0,speaking:false,reactionStart:0,reactionCount:0};this.peers.set(id,p);
   pc.onicecandidate=e=>{if(e.candidate)this.signal(id,{candidate:e.candidate.toJSON()});};
   // Let the joining peer offer first, so the initial offer always includes SCTP.
   // A media-only offer can otherwise roll back its data channels in Chromium.
@@ -47,8 +47,27 @@ export class Mesh {
   this.onChange();void this.bitrate().catch(()=>{});
  }
  recover(p:Peer,delay:number){if(p.retry||this.peers.get(p.id)!==p)return;p.retry=setTimeout(()=>{p.retry=undefined;if(this.peers.get(p.id)!==p||['connected','closed'].includes(p.pc.connectionState))return;if(p.restarts++>=3){this.onError('Medienverbindung unterbrochen. Einladung erneut öffnen; falls es wieder scheitert, TURN/VPN und Netzwerk prüfen.');return;}console.warn('RTC ICE restart',p.restarts,p.pc.iceConnectionState);p.pc.restartIce();this.recover(p,15000);},delay);}
- receive(id:string,data:any):Promise<void>{const p=this.peers.get(id);if(!p)return Promise.resolve();p.incoming=p.incoming.then(()=>this.receiveOrdered(p,data));return p.incoming;}
- async receiveOrdered(p:Peer,data:any){if(this.peers.get(p.id)!==p)return;const pc=p.pc;const id=p.id;
+ receive(id:string,data:unknown):Promise<void>{
+  const p=this.peers.get(id);
+  if(!p)return Promise.resolve();
+  let size=0;
+  try{size=JSON.stringify(data)?.length||0;}catch{return Promise.resolve();}
+  if(size<2||size>60000||p.pendingSignals>=128||p.pendingSignalBytes+size>512*1024){
+   this.onError('Zu viele Signaling-Nachrichten von einem Teilnehmer. Seine Verbindung wurde getrennt.');
+   this.remove(id);
+   return Promise.resolve();
+  }
+  p.pendingSignals++;p.pendingSignalBytes+=size;
+  const pending=p.incoming.then(()=>this.receiveOrdered(p,data)).catch(error=>{
+   this.onError('Signaling konnte nicht verarbeitet werden: '+(error instanceof Error?error.name:'Error'));
+  }).finally(()=>{
+   p.pendingSignals=Math.max(0,p.pendingSignals-1);
+   p.pendingSignalBytes=Math.max(0,p.pendingSignalBytes-size);
+  });
+  p.incoming=pending;
+  return pending;
+ }
+ async receiveOrdered(p:Peer,data:any){if(this.peers.get(p.id)!==p||!data||typeof data!=='object')return;const pc=p.pc;const id=p.id;
   try{if(data.description){const d=data.description;if(!['offer','answer'].includes(d.type)||typeof d.sdp!=='string'||d.sdp.length>58000)return;const collision=d.type==='offer'&&(p.making||(pc.signalingState!=='stable'&&!p.answerPending));p.ignore=this.self.localeCompare(id)<0&&collision;if(p.ignore)return;p.answerPending=d.type==='answer';await pc.setRemoteDescription(d);p.answerPending=false;for(const c of p.candidates)await pc.addIceCandidate(c);p.candidates=[];if(d.type==='offer'){await pc.setLocalDescription();await this.signal(id,{description:pc.localDescription});}}
    else if(data.candidate&&!p.ignore&&validIceCandidate(data.candidate)){if(pc.remoteDescription)await pc.addIceCandidate(data.candidate);else if(p.candidates.length<128)p.candidates.push(data.candidate);}
   }catch(e){if(!p.ignore){console.warn('RTC negotiation failed',e instanceof Error?e.name:'Error',pc.signalingState);this.onError('Medienverhandlung fehlgeschlagen. Verbindung wird erneut versucht.');this.recover(p,1000);}}finally{p.answerPending=false;}
