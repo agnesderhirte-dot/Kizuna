@@ -6,7 +6,7 @@ app.setPath('userData',process.env.VOXRALLY_TEST_DATA?path.resolve(process.env.V
 app.setName('KIZUNA');
 let mediaActive=true,win,db,server,socket,pendingCapture,activeRoom,activeInvite,pendingInvite,retryTimer,calendarTimer,connectionSpec,retryCount=0;
 const page=pathToFileURL(path.join(__dirname,'../dist/index.html')).href;
-const defaults={skin:'original',cameraDevice:'',cameraResolution:'1080',cameraBitrate:4,cameraBackground:'',name:'Spieler',theme:'dark',accent:'#69e3b1',mic:'',output:'',profile:'detail',resolution:'native',fps:'30',bitrate:20,noise:true,echo:true,gain:false,systemAudio:true,background:'',turnUrl:'',turnUser:'',turnPassword:''};
+const defaults={profilePhoto:'',profileBio:'',favoriteGame:'',skin:'original',cameraDevice:'',cameraResolution:'1080',cameraBitrate:4,cameraBackground:'',name:'Spieler',theme:'dark',accent:'#69e3b1',mic:'',output:'',profile:'detail',resolution:'native',fps:'30',bitrate:20,noise:true,echo:true,gain:false,systemAudio:true,background:'',turnUrl:'',turnUser:'',turnPassword:''};
 function emit(data){if(win&&!win.isDestroyed())win.webContents.send('vox:event',data);}
 function trusted(e){return win&&!win.isDestroyed()&&e.sender===win.webContents&&e.senderFrame===win.webContents.mainFrame&&e.senderFrame.url===page;}
 function get(key,fallback){const row=db.prepare('SELECT value FROM kv WHERE key=?').get(key);return row?JSON.parse(row.value):fallback;}
@@ -14,6 +14,19 @@ function set(key,value){db.prepare('INSERT OR REPLACE INTO kv(key,value) VALUES(
 function storedSettings(){const s={...defaults,...get('settings',{})};if(s.turnPassword){try{s.turnPassword=safeStorage.decryptString(Buffer.from(s.turnPassword,'base64'));}catch{s.turnPassword='';}}return s;}
 function assetFile(id){if(!/^[0-9a-f]{64}$/.test(id))throw Error('Asset-ID');return path.join(app.getPath('userData'),'assets',id);}
 function assetInfo(buffer,kind){
+ if(kind==='avatar'){
+  const {nativeImage}=require('electron');
+  const decoded=nativeImage.createFromBuffer(buffer);
+  if(decoded.isEmpty())throw Error('Profilbild ist nicht lesbar');
+  const size=decoded.getSize();
+  if(size.width<16||size.height<16||size.width>8192||size.height>8192)throw Error('Profilbild: 16 bis 8192 Pixel pro Seite');
+  const side=Math.min(size.width,size.height);
+  const image=decoded.crop({x:Math.floor((size.width-side)/2),y:Math.floor((size.height-side)/2),width:side,height:side}).resize({width:96,height:96,quality:'good'});
+  let output=image.toJPEG(65);
+  for(const quality of [55,45,35,25]){if(output.length<=12500)break;output=image.toJPEG(quality);}
+  if(output.length>12500)throw Error('Profilbild zu komplex für die Übertragung');
+  return {bytes:output,mime:'image/jpeg'};
+ }
  if(kind==='background'||kind==='emoji'){
   const {nativeImage}=require('electron');const decoded=nativeImage.createFromBuffer(buffer);if(decoded.isEmpty())throw Error('Bild konnte nicht dekodiert werden');const size=decoded.getSize();if(size.width>8192||size.height>8192)throw Error('Bild maximal 8192 × 8192');return {bytes:decoded.toPNG(),mime:'image/png'};
  }
@@ -70,7 +83,7 @@ else {
   handle('copyInvite',()=>{if(!activeInvite)throw Error('Zuerst Raum betreten');clipboard.writeText(activeInvite);return true;});
   handle('leave',()=>{disconnect();return true;});
   handle('signal',arg=>{const m=z.object({to:security.id,data:z.object({description:z.object({type:z.enum(['offer','answer']),sdp:z.string().max(58000)}).optional(),candidate:z.unknown().optional()}).strict()}).strict().parse(arg);if(!socket||socket.readyState!==WebSocket.OPEN||JSON.stringify(m).length>60000)throw Error('Keine Verbindung');socket.send(JSON.stringify({v:1,type:'signal',...m}));return true;});
-  handle('importAsset',async arg=>{const kind=z.enum(['background','sound','emoji']).parse(arg);const picked=await dialog.showOpenDialog(win,{properties:['openFile'],filters:[{name:kind,extensions:kind==='sound'?['wav','mp3','ogg','flac']:['png','jpg','jpeg','webp','gif']}]});if(picked.canceled)return null;const file=picked.filePaths[0];if(fs.statSync(file).size>10*1024*1024)throw Error('Maximal 10 MB');if(db.prepare('SELECT count(*) AS n FROM assets').get().n>=100)throw Error('Bibliothek maximal 100 Dateien');const a=assetInfo(fs.readFileSync(file),kind);if(a.bytes.length>16*1024*1024)throw Error('Dekodierte Datei zu groß');const id=crypto.createHash('sha256').update(a.bytes).digest('hex');fs.writeFileSync(assetFile(id),a.bytes);const item={id,name:path.basename(file).slice(0,80),kind,mime:a.mime};db.prepare('INSERT OR REPLACE INTO assets VALUES(?,?,?,?)').run(id,item.name,kind,a.mime);return item;});
+  handle('importAsset',async arg=>{const kind=z.enum(['background','sound','emoji','avatar']).parse(arg);const picked=await dialog.showOpenDialog(win,{properties:['openFile'],filters:[{name:kind,extensions:kind==='sound'?['wav','mp3','ogg','flac']:['png','jpg','jpeg','webp','gif']}]});if(picked.canceled)return null;const file=picked.filePaths[0];if(fs.statSync(file).size>10*1024*1024)throw Error('Maximal 10 MB');if(db.prepare('SELECT count(*) AS n FROM assets').get().n>=100)throw Error('Bibliothek maximal 100 Dateien');const a=assetInfo(fs.readFileSync(file),kind);if(a.bytes.length>16*1024*1024)throw Error('Dekodierte Datei zu groß');const id=crypto.createHash('sha256').update(a.bytes).digest('hex');fs.writeFileSync(assetFile(id),a.bytes);const item={id,name:path.basename(file).slice(0,80),kind,mime:a.mime};db.prepare('INSERT OR REPLACE INTO assets VALUES(?,?,?,?)').run(id,item.name,kind,a.mime);return item;});
   handle('asset',arg=>{const file=assetFile(arg);const meta=db.prepare('SELECT mime FROM assets WHERE id=?').get(arg);if(!meta)throw Error('Unbekanntes Asset');return {bytes:new Uint8Array(fs.readFileSync(file)),mime:meta.mime};});
   handle('listSessions',()=>calendar.list(db));
   handle('saveSession',item=>calendar.save(db,item));
