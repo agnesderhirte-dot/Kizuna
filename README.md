@@ -12,6 +12,7 @@ KIZUNA ist eine Windows-Desktop-Anwendung auf Basis von Electron, React und WebR
 - Diagnosebericht mit technischen WebRTC-Werten zum manuellen Kopieren und vorsichtige Hinweise bei wiederholt auffälligen Audiopuffern/Netzwerkverlusten. Teilnehmernamen können im Bericht enthalten sein.
 - Streaming-Presets: Football Manager (1440p30), Gaming (1440p60), Sparmodus (1080p30), je nach erreichbarer Hardware/Netzwerkleistung.
 - Neun auswählbare Themes vom Winamp-Retro-Stil bis zu Modern Glass; Fokusmodus, Vollbild und verschiebbare Kamera.
+- Eine neue Fußballweisheit bei jedem Programmstart: 36 eigene Offline-Sprüche ohne unmittelbare Wiederholung, schließbar, passend zum aktiven Skin.
 - Skin-abhängiger Sprecherrahmen; pegelbasiert, nicht sprachspezifisch; visuelle Reaktionen und über 100 Fußball-/Gaming-/Standard-Emojis mit lokalen Favoriten.
 - Spielerprofile mit kompaktem Profilfoto (96 × 96), Bio und Lieblingsspiel; Weitergabe an verbundene Peers, keine zusätzliche Cloud-Datenbank.
 - Gaming-Kalender: Termine, wöchentliche Wiederholung, Monat und Terminliste, lokale Erinnerung bei **geöffnetem** KIZUNA, ICS-Export, manuell vorbereitete WhatsApp-/E-Mail-Nachrichten und Teilen in der Lounge.
