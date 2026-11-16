@@ -6,7 +6,7 @@ app.setPath('userData',process.env.VOXRALLY_TEST_DATA?path.resolve(process.env.V
 app.setName('KIZUNA');
 let mediaActive=true,win,db,server,socket,pendingCapture,activeRoom,activeInvite,pendingInvite,retryTimer,calendarTimer,connectionSpec,retryCount=0;
 const page=pathToFileURL(path.join(__dirname,'../dist/index.html')).href;
-const defaults={profilePhoto:'',profileBio:'',favoriteGame:'',skin:'original',cameraDevice:'',cameraResolution:'1080',cameraBitrate:4,cameraBackground:'',name:'Spieler',theme:'dark',accent:'#69e3b1',mic:'',output:'',profile:'detail',resolution:'native',fps:'30',bitrate:20,noise:true,echo:true,gain:false,systemAudio:true,background:'',turnUrl:'',turnUser:'',turnPassword:''};
+const defaults={profilePhoto:'',profileBio:'',favoriteGame:'',favoriteReactions:['⚽','🏆','😂'],skin:'original',cameraDevice:'',cameraResolution:'1080',cameraBitrate:4,cameraBackground:'',name:'Spieler',theme:'dark',accent:'#69e3b1',mic:'',output:'',profile:'detail',resolution:'native',fps:'30',bitrate:20,noise:true,echo:true,gain:false,systemAudio:true,background:'',turnUrl:'',turnUser:'',turnPassword:''};
 function emit(data){if(win&&!win.isDestroyed())win.webContents.send('vox:event',data);}
 function trusted(e){return win&&!win.isDestroyed()&&e.sender===win.webContents&&e.senderFrame===win.webContents.mainFrame&&e.senderFrame.url===page;}
 function get(key,fallback){const row=db.prepare('SELECT value FROM kv WHERE key=?').get(key);return row?JSON.parse(row.value):fallback;}
