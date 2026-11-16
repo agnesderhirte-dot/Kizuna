@@ -8,6 +8,11 @@
 - Diagnosewerte nach Nutzerklick kopieren, inklusive Hinweis auf möglicherweise enthaltene Teilnehmernamen.
 - Qualitätsberatung erst bei dauerhaft erhöhten Audio-/Videopaketverlusten, Audiopuffern oder RTT.
 - Eigene Sounddateien mit zweistufiger Bestätigung aus der lokalen Bibliothek entfernen.
+- Doppelte WebRTC-Datenkanäle und bösartige/zu große ICE-Kandidaten zurückweisen.
+- Sound-Cache-Bestätigungen begrenzen, ausstehende Soundwiedergaben beim Sitzungsende aufräumen.
+- Verschlüsselte Cloud-Signalisierung gegen übergroße Nachrichtenwarteschlangen schützen.
+- Rasterbild-Abmessungen schon vor der Electron-Dekodierung prüfen.
+- CI-Sicherheitsprüfung auf High-/Critical-Laufzeit-Advisories ergänzt.
 - Bild und Spielton sichtbarer Streams über dasselbe Wiedergabeelement; Soundboard-Cache und weniger künstliche Wartezeit.
 - 1440p30-/1440p60- und Sparprofile, ausführliche WebRTC-FPS-, Latenz-, Jitter- und Paketverlustdiagnose.
 - Lokaler Mikrofontest mit kurzer, nur im Arbeitsspeicher gehaltener Testaufnahme.
