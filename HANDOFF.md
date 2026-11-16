@@ -1,3 +1,12 @@
+## Stand 2026-11-16 – Nacharbeit zu Spielsound und Audioverzögerung
+- Zuletzt geprüfter Quellcommit: `f496c99084580b2fc7fcdc863bc19d86025b20db`; GitHub Actions: https://github.com/agnesderhirte-dot/Kizuna/actions/runs/43817017128 (**Build grün; 34/35 Unit-Tests erfolgreich, einer übersprungen**).
+- Per-Stream-Stummschaltung in `src/VideoStage.tsx` und `src/main.tsx`. In der Stream-Toolbar wird der Spielsound jedes fremden Teilnehmers separat geschaltet; RemoteAudio rendert nur andere Audioarten, Soundboard bleibt unabhängig.
+- Bildschirm und sein Ton werden in einem HTMLVideoElement synchron abgespielt. Andere Screens haben im Fokusmodus Audio-only-Fallback.
+- `Mesh.sound` prüft Empfänger-Acknowledgements und Cache, sendet Sounddateien nicht bei jedem Klick erneut; kürzere Wiedergabeverzögerung für neue Clients; alter Client-Fallback. Voraussichtliche lokale Scheduling-Verzögerung 160ms, **keine End-to-End-Garantie**.
+- `QualityDiagnostics` erfasst aus WebRTC-Statistiken auch playout buffer und kaschierte Audio-Samples.
+- **Offen**: Hardware-/Sprach-/Audio-Lag-Test mit zwei echten PCs, Ton-Sync-Verifikation bei Netzwerklast, 1440p60-Benchmark. Kein Merge, Release oder Client-Update erfolgt.
+- Zuletzt: Roadmap `docs/MASTER_ROADMAP.md` und Entwicklungsprotokoll `docs/DEVELOPMENT_PROGRESS.md`. Während der aktiven Entwicklung sind neue CI-Läufe zu prüfen, bei nächstem Commit erneut validieren.
+
 # KIZUNA – aktueller Entwicklungs-Handoff 16.11.2026
 
 **Dieser Abschnitt ergänzt die historische KIZUNA-0.3.2-Übergabe unten; alte Testergebnisse gelten nicht automatisch für neue Funktionen.**
