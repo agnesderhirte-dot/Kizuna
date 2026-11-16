@@ -1,6 +1,6 @@
 # KIZUNA – verbindliche Entwicklungsroadmap
 
-Stand: 2026-11-16. Referenz: `main` / KIZUNA 0.3.2, Entwicklungsbranch `feat/retro-modern-skins`, Draft-PR #1. **Keine produktive Veröffentlichung ohne Benutzerfreigabe.**
+Stand: 2026-11-16. Referenz: `main` / KIZUNA 0.3.2, vorbereitete 0.4.0 im Entwicklungsbranch `feat/retro-modern-skins`, Draft-PR #1. **Keine produktive Veröffentlichung ohne Benutzerfreigabe.**
 
 ## Statusregeln
 - [ ] Offen: kein Code oder nur Konzept.
@@ -21,18 +21,22 @@ Stand: 2026-11-16. Referenz: `main` / KIZUNA 0.3.2, Entwicklungsbranch `feat/ret
 | KZ-006 | P0 | 1440p60: Capture/Encoder/Netzwerkprofile benchmarken | GPT-6 Extra High | Messanzeigen und Presets CI-getestet; reale 1440p60-Abnahme offen | Soll-/Ist-FPS, Bitrate, RTT, Drops, CPU/GPU auf zwei PCs; keine unbelegte FPS-Garantie |
 | KZ-007 | P1 | Soundboard: eigene Tracks und legal lizenzierte freie Effekte | GPT-6 Medium/High | Eigene Import-Sounds und drei Originaleffekte CI-getestet; Drittmaterial nicht gebündelt | Dateiformate, Lautheit, Rechte/Lizenzprotokoll, Empfänger-Test |
 | KZ-008 | P2 | Benutzerprofile mit Profilbild, Banner, Teilen und Datenschutz | GPT-6 Medium | Profil/Avatar P2P und Speicherung CI-getestet; Zwei-PC-GUI offen | Dateiprüfung, Größenlimit, Thumbnail, Remote-Darstellung, Persistenz |
-| KZ-009 | P2 | Komfortfunktionen nach Nitro-Nutzwertprüfung | GPT-6 Medium | Teilweise umgesetzt (Skins, Profile, Emojis, Sounds); Nutzwertreview offen | Sinnvolle Funktionen statt blindem Nachbau; Tests pro Feature |
+| KZ-009 | P2 | Komfortfunktionen nach Nitro-Nutzwertprüfung | GPT-6 Medium | Nutzwertprüfung dokumentiert; selektierte Features CI-getestet, übrige bewusst zurückgestellt | Sinnvolle Funktionen statt blindem Nachbau; Tests pro Feature |
 | KZ-010 | P2 | Spielkalender, Wiederholung, lokale Windows-Erinnerungen | GPT-6 Medium | Kalender/ICS/lokale Erinnerungen CI-getestet; Windows-Abnahme offen | ICS, Zeitzonen, Zustellung und Datenerhalt |
 | KZ-011 | P3 | Optionale E-Mail-/WhatsApp-Erinnerungen | GPT-6 High | Manuelles Teilen umgesetzt; automatischer Versand mangels Provider/Opt-in offen | Opt-in, verifizierter Versandweg, WhatsApp nur offiziell; ggf. Kostenfreigabe |
-| KZ-012 | P0 | Zentraler Updateservice + signierter Upgradepfad | GPT-6 Extra High | Update-Changelog vorbereitet; Signatur/Release weiterhin blockiert | Kein unsigniertes Vertrauen; echter installierter Versionswechsel, aktiven Stream schonen |
-| KZ-013 | P0 | Sicherheit, Netzwerk- und Langzeittests | GPT-6 High | Quellcode/CI-Härtung geprüft; Zwei-PC-/Langzeittests offen | Zwei reale PCs, getrennte Netze, 1h/4h Soak, Wiederverbindung |
-| KZ-014 | P0 | Abschließendes Architektur-/Performance-Audit | GPT-6 Extra High | IPC-/Audio-Speicheroptimierungen CI-getestet; unabhängige Schlussprüfung offen | Zweites Review, konkrete Messwerte, offene Restrisiken |
+| KZ-012 | P0 | Zentraler Updateservice + signierter Upgradepfad | GPT-6 Extra High | Zielversion 0.4.0 und SQLite-Migration v2 getestet; Publisher-Signatur und realer Upgrade-Test blockieren Freigabe | Kein unsigniertes Vertrauen; echter installierter Versionswechsel, aktiven Stream schonen |
+| KZ-013 | P0 | Sicherheit, Netzwerk- und Langzeittests | GPT-6 High | Stale-Capture- und LAN-Teardown-Fixes CI-geprüft; Zwei-PC-/Langzeittests offen | Zwei reale PCs, getrennte Netze, 1h/4h Soak, Wiederverbindung |
+| KZ-014 | P0 | Abschließendes Architektur-/Performance-Audit | GPT-6 Extra High | Infrastruktur-/Nutzwert- und Migrationsaudit verbessert; unabhängige Windows-Schlussprüfung offen | Zweites Review, konkrete Messwerte, offene Restrisiken |
 | KZ-015 | P0 | Spielsound pro Teilnehmer separat stummschalten und Audio-Video-Synchronität verbessern | GPT-6 High | CI getestet; Zwei-PC-Latenztest offen | Sprecher und Soundboard bleiben hörbar; Bild/Spielsound in einem Stream-Element; Sound-Cache, Empfänger-ACK und Verzögerungsmessung |
 | KZ-016 | P1 | Einzelne Stimmen, Reaktionen und Soundboard-Beiträge je Mitspieler lokal regeln | GPT-6 Medium | CI getestet; Windows-Zwei-PC-Abnahme offen | Receiver-only-Mix, keine Track-Änderungen, P2P-Sender-ID für Sound, Opt-out ohne Störung der Streams |
 | KZ-017 | P1 | Diagnose kopieren und bei dauerhaftem Verlust/Jitter beraten | GPT-6 High | CI getestet; reale Messwertkalibrierung offen | Begrenzter und bewusst geteilter Bericht, keine Zugangsdaten, Warnungen erst nach 3 auffälligen Intervallen |
 | KZ-018 | P2 | Eigene Soundbibliothek mit sicherer Löschung verwalten | GPT-6 Medium | CI getestet; GUI-Abnahme offen | Hash-ID, Sound-only-Löschung, zwei Klicks, andere Assets unangetastet |
 | KZ-019 | P0 | Rasterbild-Dekodierung vorab auf Bildgröße/Pixelbudget prüfen | GPT-6 High | Automatisiert getestet; Decoder-Fuzzing offen | PNG/JPEG/GIF/WebP-Header, Avatar 8MP, andere Bilder 16MP, keine unbeschränkte native Dekodierung |
 | KZ-020 | P2 | Bei jedem Kizuna-Start eine Fußballweisheit anzeigen | GPT-6 Medium, Review High | CI-getestet; Windows-Optik offen | 36 eigene Offline-Sprüche, kein direkter Wiederholer zwischen Programmstarts, skinfarben, schließbar, beim Raumeintritt weg |
+| KZ-021 | P0 | Medienfreigaben nach Raumwechsel/Verlassen abbrechen | GPT-6 High | CI-getestet; Windows-Berechtigungsdialog noch real zu testen | Epoch-/Raumprüfung vor Aktivierung, verspätete Streams stoppen |
+| KZ-022 | P0 | Bestehende Nutzerdaten beim Upgrade transaktional migrieren | GPT-6 Extra High | SQLite-v1→v2-Tests bestanden; installierter Windows-Upgrade noch ausstehend | Keine rückwirkende Versionsüberschreibung, Schema-/Spaltenprüfung, Rollback |
+| KZ-023 | P1 | Ungenutzte LAN-Signaling-Server bei Raumwechsel schließen | GPT-6 High | Unit-/Integrationstest; Windows-Portfreigabe offen | Listener schließen, Capture-Ticket verwerfen |
+| KZ-024 | P1 | Runtime- und Dev-Dependency-Audit und Release-Gates | GPT-6 High | CI-Test erfolgreich; zwei moderate Dev-Advisories dokumentieren | Kein blindes Updating, keine bekannte High/Critical-Advisory, signierter Release weiterhin erforderlich |
 
 ## Arbeitsreihenfolge
 1. Baseline und PR #1 auf technische Probleme prüfen, einschließlich sicherem gespeicherten Fortschritt.
@@ -83,3 +87,12 @@ Nachweis: GitHub Actions [Run 43820759138](https://github.com/agnesderhirte-dot/
 - **KZ-014 (technischer Teil):** `MediaActivityGate` sendet Medienstatus nur bei Änderung an Electron; `SoundPlaybackPool` räumt Blobs und Audioplayer nach natürlichem Ende, Fehler, Stop und Raumwechsel auf. Audio-Ausgabegeräte werden beim Ändern der Lautstärke nicht mehr erneut ausgewählt. Verspätete Hintergrundbild-Ladevorgänge dürfen nach dem Abwählen keinen Objekt-URL-Leak erzeugen.
 - **Verifizierter Build:** [GitHub Actions Run 43835700399](https://github.com/agnesderhirte-dot/Kizuna/actions/runs/43835700399), Commit `f11ca1abaa9cbbce563ef462d965abb27c55ebba`, **83 Tests bestanden, 0 fehlgeschlagen, 1 übersprungen**, TypeScript-/Vite-Build und Audit produktiver Abhängigkeiten grün.
 - **Offen:** Reale Messung von CPU/GPU, Browser-WebRTC-Buffering, zwei Windows-PCs, 1440p60 und Ende-zu-Ende-Audiolatenz. KZ-014 nicht zur Freigabe hochstufen; nur CI-Verhalten nachgewiesen.
+
+### Zusätzliche rein per GitHub erledigte Arbeiten (16.11.2026)
+- **KZ-021 Medien-Lifecycle**: späte Windows-Mikrofon-/Bildschirmfreigaben nach Raumwechsel oder Verlassen werden nicht aktiviert; Tracks sofort gestoppt, Stream-Ende nur für die aktuell aktive Freigabe wirksam.
+- **KZ-022 Upgrade-Sicherheit**: `desktop/migrations.cjs` führt das SQLite-Schema künftig transaktional von Version 1 auf 2, prüft Tabellen und Spalten und führt bei Fehlern ein Rollback aus. Nutzerprofile, Einstellungen, Assets, Nachrichten und Kalender bleiben im Test erhalten. Alter `%APPDATA%\\VoxRally`-Pfad bleibt. Auf dem Branch ist die nächste Anwendungsversionsnummer **0.4.0** gesetzt – kein Installer veröffentlicht.
+- **KZ-023 Signaling-Aufräumen**: Beim Raumwechsel oder Verlassen den lokalen WebSocket-Listener schließen und ausstehende Bildschirm-Capture-Tickets löschen.
+- **KZ-024 Sicherheitsprüfungen**: GitHub Actions prüft jetzt Laufzeit- **und** Entwicklungs-Abhängigkeiten auf bekannte Advisories ab Severity High. Bei der Prüfung am 16.11.2026 keine High/Critical-Fehler; zwei Moderate in Entwicklungsabhängigkeiten gemeldet (nicht als 'null Schwachstellen' ausgeben).
+- **KZ-009 Nitro-Nutzwertabgleich**: `docs/NITRO_FEATURE_REVIEW.md` dokumentiert, welche Komfortfunktionen sinnvoll sind und welche aus Bandbreiten-/Kosten-/Lizenzgründen bewusst entfallen.
+- **Windows-Übergabe**: `docs/WINDOWS_HANDOFF.md` enthält konkrete Anweisungen für Codex, zwei PCs, Ton-/1440p60-Messung, Appdatenmigration, Signaturen, Versionierung und Releaseentscheidung.
+- Der Entwicklungstand benötigt **kein Codex-Guthaben**, jedoch ChatGPT-/GitHub-Ressourcen. Die nächste sachliche Hürde ist die reale Windows-Abnahme: keine produktive Freigabe ohne unterschriebene/validierte Releasekette.
