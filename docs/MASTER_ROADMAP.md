@@ -17,7 +17,7 @@ Stand: 2026-11-16. Referenz: `main` / KIZUNA 0.3.2, Entwicklungsbranch `feat/ret
 | KZ-002 | P1 | Neun Skins und Skin-Galerie inklusive Fokusmodus | GPT-6 Medium, Review High | CI getestet; Windows-GUI offen | TypeScript/GUI/Regression, Skinwechsel im Stream, Datenerhalt |
 | KZ-003 | P1 | Sprecherumrandung (Mikrofon statt Spielaudio) | GPT-6 High | CI getestet; reale Mikrofone offen | Lokal/remote korrekt sichtbar, Timeout, Mute, Vollbild, Tests, begrenzter CPU- und Signaling-Overhead |
 | KZ-004 | P1 | Synchrone Fußball- und Standardreaktionen | GPT-6 Medium | CI getestet; Zwei-PC-GUI offen | Whitelist, Peer-Ratenlimit, visuelle Overlays, Vollbild, Blockierbarkeit |
-| KZ-005 | P0 | Schlechter Ton: Messung + Geräte-, Opus- und Loopback-Diagnose | GPT-6 High | Offen | Reale Hörtests sowie Jitter/Verlust/Latenz dokumentiert |
+| KZ-005 | P0 | Schlechter Ton: Messung + Geräte-, Opus- und Loopback-Diagnose | GPT-6 High | Diagnose/Playback-Fixes CI getestet; Hörtest offen | Reale Hörtests sowie Jitter/Verlust/Latenz dokumentiert |
 | KZ-006 | P0 | 1440p60: Capture/Encoder/Netzwerkprofile benchmarken | GPT-6 Extra High | Offen | Soll-/Ist-FPS, Bitrate, RTT, Drops, CPU/GPU auf zwei PCs; keine unbelegte FPS-Garantie |
 | KZ-007 | P1 | Soundboard: eigene Tracks und legal lizenzierte freie Effekte | GPT-6 Medium/High | Offen | Dateiformate, Lautheit, Rechte/Lizenzprotokoll, Empfänger-Test |
 | KZ-008 | P2 | Benutzerprofile mit Profilbild, Banner, Teilen und Datenschutz | GPT-6 Medium | Offen | Dateiprüfung, Größenlimit, Thumbnail, Remote-Darstellung, Persistenz |
@@ -27,6 +27,8 @@ Stand: 2026-11-16. Referenz: `main` / KIZUNA 0.3.2, Entwicklungsbranch `feat/ret
 | KZ-012 | P0 | Zentraler Updateservice + signierter Upgradepfad | GPT-6 Extra High | Blockiert (Signatur/Release-Konfiguration) | Kein unsigniertes Vertrauen; echter installierter Versionswechsel, aktiven Stream schonen |
 | KZ-013 | P0 | Sicherheit, Netzwerk- und Langzeittests | GPT-6 High | Offen | Zwei reale PCs, getrennte Netze, 1h/4h Soak, Wiederverbindung |
 | KZ-014 | P0 | Abschließendes Architektur-/Performance-Audit | GPT-6 Extra High | Offen | Zweites Review, konkrete Messwerte, offene Restrisiken |
+
+| KZ-015 | P0 | Spielsound pro Teilnehmer separat stummschalten und Audio-Video-Synchronität verbessern | GPT-6 High | CI getestet; Zwei-PC-Latenztest offen | Sprecher und Soundboard bleiben hörbar; Bild/Spielsound in einem Stream-Element; Sound-Cache, Empfänger-ACK und Verzögerungsmessung |
 
 ## Arbeitsreihenfolge
 1. Baseline und PR #1 auf technische Probleme prüfen, einschließlich sicherem gespeicherten Fortschritt.
@@ -42,3 +44,9 @@ Keine Änderung ungefragt nach `main` mergen. Kein Update an andere Nutzer pushe
 
 ### Nachweisstand 16.11.2026
 GitHub Actions `validate`, Run **43775020122** (`4a57166b0a3a62af7a028f7bf00b1775dcb99469`): `pnpm build` erfolgreich, `pnpm test` **24 bestanden / 0 fehlgeschlagen / 1 übersprungen**. Das ist **keine Windows-/Mikrofon-/Zwei-PC-Abnahme**. Nachfolge-Commits an Dokumentation sind unveränderte Quelllogik, müssen aber auf ihren eigenen CI-Status geprüft werden.
+
+### CI und Audio-Fortschritt – 16.11.2026
+- Branch `feat/retro-modern-skins` enthält getrennte Stummschaltung pro fremdem Bildschirm, synchrone Wiedergabe von Bildschirm und Systemaudio im selben HTMLMediaElement, Audio-only-Fallback für gerade nicht sichtbare Streams sowie entkoppelte Voice- und Soundboard-Wiedergabe.
+- Soundboard mit SHA-256-Cache, Empfängerbestätigung und Start in 160 ms nach Bereitschaft für unterstützte Clients; keine künstliche Wartezeit von 600+300 ms mehr. Erstmalige Dateiübertragung benötigt weiterhin Zeit. Kompatibilitäts-Fallback für alte Clients verbleibt.
+- Audiostatistiken einschließlich Jitter, paketverlustbasierter Kennzahlen, Audio-Playout-Puffer und kaschierter Samples; keine Garantie auf dauerhaft niedrige Latenz.
+- GitHub Actions Run [43817017128](https://github.com/agnesderhirte-dot/Kizuna/actions/runs/43817017128): `pnpm build` bestanden, `pnpm test` 35 insgesamt, **34 bestanden, 0 fehlgeschlagen, 1 übersprungen** (SHA `f496c99084580b2fc7fcdc863bc19d86025b20db`). Reale Win10/11- und Zwei-PC-Latenzmessungen sind weiterhin offen.
