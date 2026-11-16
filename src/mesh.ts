@@ -8,7 +8,7 @@ export function soundStartDelay(now:number,at:number,offset:number,lastSync:numb
   const delta=at-offset-now;
   return delta < -1000||delta>2000?null:Math.max(0,delta);
  }
- if(Number.isInteger(fallback)&&fallback!>=0&&fallback!<=500)return fallback!;
+ if(fallback!==undefined&&Number.isInteger(fallback)&&fallback>=0&&fallback<=500)return fallback;
  // Legacy senders may not include relative timing. Play promptly rather than
  // trusting clocks that have never been synchronized.
  return 0;
