@@ -1,7 +1,7 @@
 const {Notification,app,BrowserWindow,ipcMain,session,desktopCapturer,dialog,safeStorage,shell,clipboard,globalShortcut}=require('electron');
 const path=require('node:path');const fs=require('node:fs');const crypto=require('node:crypto');const os=require('node:os');const {pathToFileURL}=require('node:url');
 const {DatabaseSync}=require('node:sqlite');const {WebSocket}=require('ws');const {z}=require('zod');
-const security=require('./security.cjs');const calendar=require('./calendar.cjs');const {verifyImage}=require('./image-limits.cjs');const builtinSounds=require('./bundled-sounds.cjs');const {createSignaling}=require('./signaling.cjs');
+const security=require('./security.cjs');const calendar=require('./calendar.cjs');const {migrate}=require('./migrations.cjs');const {verifyImage}=require('./image-limits.cjs');const builtinSounds=require('./bundled-sounds.cjs');const {createSignaling}=require('./signaling.cjs');
 app.setPath('userData',process.env.VOXRALLY_TEST_DATA?path.resolve(process.env.VOXRALLY_TEST_DATA):path.join(app.getPath('appData'),'VoxRally'));
 app.setName('KIZUNA');
 let mediaActive=true,win,db,server,socket,pendingCapture,activeRoom,activeInvite,pendingInvite,retryTimer,calendarTimer,connectionSpec,retryCount=0;
@@ -52,7 +52,7 @@ else {
  app.on('second-instance',(_e,args)=>{const link=args.find(a=>a.startsWith('voxrally:'));if(link){try{security.invite(link);pendingInvite=link;emit({type:'invite',value:link});}catch{}}win?.show();});
  app.whenReady().then(()=>{
   fs.mkdirSync(path.join(app.getPath('userData'),'assets'),{recursive:true});db=new DatabaseSync(path.join(app.getPath('userData'),'voxrally.sqlite'));
-  db.exec('PRAGMA journal_mode=WAL; CREATE TABLE IF NOT EXISTS kv(key TEXT PRIMARY KEY,value TEXT NOT NULL); CREATE TABLE IF NOT EXISTS assets(id TEXT PRIMARY KEY,name TEXT NOT NULL,kind TEXT NOT NULL,mime TEXT NOT NULL); CREATE TABLE IF NOT EXISTS messages(id TEXT NOT NULL,room TEXT NOT NULL,sender TEXT NOT NULL,name TEXT NOT NULL,text TEXT NOT NULL,time INTEGER NOT NULL,PRIMARY KEY(room,id)); PRAGMA user_version=1;');calendar.setup(db);
+  db.exec('PRAGMA journal_mode=WAL');migrate(db);
   if(!get('identity',null)){const pair=crypto.generateKeyPairSync('ed25519');if(!safeStorage.isEncryptionAvailable())throw Error('Windows Secure Storage nicht verfügbar');set('identity',{publicKey:pair.publicKey.export({type:'spki',format:'pem'}),privateKey:safeStorage.encryptString(pair.privateKey.export({type:'pkcs8',format:'pem'})).toString('base64')});}
   const initial=process.argv.find(a=>a.startsWith('voxrally:'));if(initial){try{security.invite(initial);pendingInvite=initial;}catch{}}
   session.defaultSession.setPermissionRequestHandler((wc,permission,cb,details)=>cb(wc===win?.webContents&&wc.getURL()===page&&details.isMainFrame!==false&&['media','display-capture','fullscreen'].includes(permission)));
