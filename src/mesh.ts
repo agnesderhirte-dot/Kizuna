@@ -1,6 +1,19 @@
 import type {Chat,Settings} from './types';
 import {isAllowedReaction} from './reactions';
 export type SharedProfile={name:string;photo:string;bio:string;game:string};
+/** Correct for one-way network transit when a recent ping/pong clock estimate exists. */
+export function soundStartDelay(now:number,at:number,offset:number,lastSync:number,fallback:number|undefined):number|null{
+ if(!Number.isFinite(now)||!Number.isFinite(at)||!Number.isFinite(offset))return null;
+ if(lastSync>0&&lastSync<=now&&now-lastSync<90000){
+  const delta=at-offset-now;
+  return delta < -1000||delta>2000?null:Math.max(0,delta);
+ }
+ if(Number.isInteger(fallback)&&fallback!>=0&&fallback!<=500)return fallback!;
+ // Legacy senders may not include relative timing. Play promptly rather than
+ // trusting clocks that have never been synchronized.
+ return 0;
+}
+
 /** Filter signaling input before touching the browser ICE state. */
 export function validIceCandidate(raw:unknown):raw is RTCIceCandidateInit{
  if(!raw||typeof raw!=='object'||Array.isArray(raw))return false;
@@ -11,7 +24,7 @@ export function validIceCandidate(raw:unknown):raw is RTCIceCandidateInit{
   &&(c.usernameFragment==null||(typeof c.usernameFragment==='string'&&c.usernameFragment.length<=256));
 }
 
-type Peer={profile?:SharedProfile;incoming:Promise<void>;pendingSignals:number;pendingSignalBytes:number;retry?:ReturnType<typeof setTimeout>;restarts:number;id:string;name:string;pc:RTCPeerConnection;dc?:RTCDataChannel;updatesDc?:RTCDataChannel;making:boolean;answerPending:boolean;ignore:boolean;candidates:RTCIceCandidateInit[];streams:Map<string,MediaStream>;labels:Record<string,string>;count:number;since:number;chatCount:number;soundAt:number;soundTransferAt:number;soundAck:boolean;readySounds:Set<string>;offeredSounds?:Set<string>;pendingSoundReady:Map<string,{resolve:(ok:boolean)=>void;timeout:ReturnType<typeof setTimeout>}>;offset:number;speaking:boolean;speechTimeout?:ReturnType<typeof setTimeout>;reactionStart:number;reactionCount:number;transfer?:{hash:string;mime:string;size:number;parts:string[];received:number;expires:number}};
+type Peer={profile?:SharedProfile;incoming:Promise<void>;pendingSignals:number;pendingSignalBytes:number;clockObservedAt:number;lastPingAt:number;pingTimer?:ReturnType<typeof setInterval>;retry?:ReturnType<typeof setTimeout>;restarts:number;id:string;name:string;pc:RTCPeerConnection;dc?:RTCDataChannel;updatesDc?:RTCDataChannel;making:boolean;answerPending:boolean;ignore:boolean;candidates:RTCIceCandidateInit[];streams:Map<string,MediaStream>;labels:Record<string,string>;count:number;since:number;chatCount:number;soundAt:number;soundTransferAt:number;soundAck:boolean;readySounds:Set<string>;offeredSounds?:Set<string>;pendingSoundReady:Map<string,{resolve:(ok:boolean)=>void;timeout:ReturnType<typeof setTimeout>}>;offset:number;speaking:boolean;speechTimeout?:ReturnType<typeof setTimeout>;reactionStart:number;reactionCount:number;transfer?:{hash:string;mime:string;size:number;parts:string[];received:number;expires:number}};
 export type Remote={peer:string;name:string;stream:MediaStream;kind:string};
 export class Mesh {
  peers=new Map<string,Peer>();profile:SharedProfile={name:'Spieler',photo:'',bio:'',game:''};self='';local=new Map<string,MediaStream>();sounds=new Map<string,Blob>();onChange=()=>{};onSpeaking=()=>{};localSpeaking=false;onChat=(m:Chat)=>{};onError=(s:string)=>{};onSound=(_blob:Blob,_peerId?:string)=>{};onReaction=(_id:string,_name:string,_emoji:string)=>{};private localReactionStart=0;private localReactionCount=0;private playbackTimers=new Set<ReturnType<typeof setTimeout>>();
@@ -22,7 +35,7 @@ export class Mesh {
  add(id:string,name:string,initiator:boolean){
   if(this.peers.has(id))return;
   const iceServers:RTCIceServer[]=[{urls:'stun:stun.cloudflare.com:3478'}];if(this.settings.turnUrl)iceServers.push({urls:this.settings.turnUrl,username:this.settings.turnUser,credential:this.settings.turnPassword});
-  const pc=new RTCPeerConnection({iceServers,bundlePolicy:"max-bundle"});const p:Peer={incoming:Promise.resolve(),pendingSignals:0,pendingSignalBytes:0,restarts:0,id,name,pc,making:false,answerPending:false,ignore:false,candidates:[],streams:new Map(),labels:{},count:0,chatCount:0,since:Date.now(),soundAt:0,soundTransferAt:0,soundAck:false,readySounds:new Set(),offeredSounds:new Set(),pendingSoundReady:new Map(),offset:0,speaking:false,reactionStart:0,reactionCount:0};this.peers.set(id,p);
+  const pc=new RTCPeerConnection({iceServers,bundlePolicy:"max-bundle"});const p:Peer={incoming:Promise.resolve(),pendingSignals:0,pendingSignalBytes:0,clockObservedAt:0,lastPingAt:0,restarts:0,id,name,pc,making:false,answerPending:false,ignore:false,candidates:[],streams:new Map(),labels:{},count:0,chatCount:0,since:Date.now(),soundAt:0,soundTransferAt:0,soundAck:false,readySounds:new Set(),offeredSounds:new Set(),pendingSoundReady:new Map(),offset:0,speaking:false,reactionStart:0,reactionCount:0};this.peers.set(id,p);
   pc.onicecandidate=e=>{if(e.candidate)this.signal(id,{candidate:e.candidate.toJSON()});};
   // Let the joining peer offer first, so the initial offer always includes SCTP.
   // A media-only offer can otherwise roll back its data channels in Chromium.
@@ -72,11 +85,21 @@ export class Mesh {
    else if(data.candidate&&!p.ignore&&validIceCandidate(data.candidate)){if(pc.remoteDescription)await pc.addIceCandidate(data.candidate);else if(p.candidates.length<128)p.candidates.push(data.candidate);}
   }catch(e){if(!p.ignore){console.warn('RTC negotiation failed',e instanceof Error?e.name:'Error',pc.signalingState);this.onError('Medienverhandlung fehlgeschlagen. Verbindung wird erneut versucht.');this.recover(p,1000);}}finally{p.answerPending=false;}
  }
- bind(p:Peer,dc:RTCDataChannel){p.dc=dc;dc.bufferedAmountLowThreshold=65536;dc.onopen=()=>{if(this.peers.get(p.id)!==p||p.dc!==dc)return;this.send(p,{type:'labels',labels:this.labels()});this.send(p,{type:'ping',time:Date.now()});this.send(p,{type:'capabilities',soundAck:true});this.send(p,{type:'profile',...this.profile});if(this.localSpeaking)this.send(p,{type:'speaking',active:true});this.onChange();};dc.onmessage=e=>{
+ bind(p:Peer,dc:RTCDataChannel){p.dc=dc;dc.bufferedAmountLowThreshold=65536;dc.onopen=()=>{if(this.peers.get(p.id)!==p||p.dc!==dc)return;this.send(p,{type:'labels',labels:this.labels()});const ping=()=>{
+    const time=Date.now();
+    if(this.send(p,{type:'ping',time}))p.lastPingAt=time;
+   };
+   ping();
+   clearInterval(p.pingTimer);
+   p.pingTimer=setInterval(()=>{
+    if(this.peers.get(p.id)!==p||p.dc!==dc||dc.readyState!=='open'){clearInterval(p.pingTimer);p.pingTimer=undefined;return;}
+    ping();
+   },30000);
+   this.send(p,{type:'capabilities',soundAck:true});this.send(p,{type:'profile',...this.profile});if(this.localSpeaking)this.send(p,{type:'speaking',active:true});this.onChange();};dc.onmessage=e=>{
    if(this.peers.get(p.id)!==p||p.dc!==dc)return;
    void this.data(p,e.data).catch(()=>this.onError('Ungültige Peer-Daten verworfen'));
   };
-  dc.onclose=()=>{if(this.peers.get(p.id)!==p||p.dc!==dc)return;clearTimeout(p.speechTimeout);p.speaking=false;this.onSpeaking();this.onChange();};
+  dc.onclose=()=>{if(this.peers.get(p.id)!==p||p.dc!==dc)return;clearInterval(p.pingTimer);p.pingTimer=undefined;clearTimeout(p.speechTimeout);p.speaking=false;this.onSpeaking();this.onChange();};
  }
  labels(){return Object.fromEntries([...this.local].map(([kind,s])=>[s.id,kind]));}
  send(p:Peer,m:Record<string,unknown>):boolean{const text=JSON.stringify({v:1,...m});if(p.dc?.readyState!=='open'||p.dc.bufferedAmount>=512*1024||text.length>20000)return false;p.dc.send(text);return true;}
@@ -102,7 +125,7 @@ export class Mesh {
   else if(m.type==='chat'&&++p.chatCount<=10&&typeof m.text==='string'&&m.text.length>0&&m.text.length<=4000&&typeof m.id==='string'&&/^[a-zA-Z0-9_-]{8,80}$/.test(m.id)){this.onChat({id:m.id,text:m.text,sender:p.id,name:p.name,time:now});}
   else if(m.type==='capabilities'&&m.soundAck===true)p.soundAck=true;
   else if(m.type==='ping'&&Number.isFinite(m.time))this.send(p,{type:'pong',time:m.time,remote:now});
-  else if(m.type==='pong'&&Number.isFinite(m.time)&&Number.isFinite(m.remote)&&now-m.time>=0&&now-m.time<10000)p.offset=m.remote-(m.time+now)/2;
+  else if(m.type==='pong'&&Number.isFinite(m.time)&&m.time===p.lastPingAt&&Number.isFinite(m.remote)&&now-m.time>=0&&now-m.time<10000){p.offset=m.remote-(m.time+now)/2;p.clockObservedAt=now;}
   else if(m.type==='sound-start'&&typeof m.hash==='string'&&/^[0-9a-f]{64}$/.test(m.hash)&&['audio/wav','audio/mpeg','audio/ogg','audio/flac'].includes(m.mime)&&Number.isInteger(m.size)&&m.size>0&&m.size<=10*1024*1024){if(this.sounds.has(m.hash)){this.send(p,{type:'sound-ready',hash:m.hash});return;}if(now-p.soundTransferAt<800)return;p.soundTransferAt=now;p.transfer={hash:m.hash,mime:m.mime,size:m.size,parts:[],received:0,expires:now+60000};}
   else if(m.type==='sound-part'&&p.transfer){const t=p.transfer;if(now>t.expires||typeof m.bytes!=='string'||m.bytes.length>16384||!/^[A-Za-z0-9+/]*={0,2}$/.test(m.bytes)){p.transfer=undefined;return;}t.received+=atob(m.bytes).length;if(t.received>t.size){p.transfer=undefined;return;}t.parts.push(m.bytes);}
   else if(m.type==='sound-end'&&p.transfer){const t=p.transfer;p.transfer=undefined;if(t.received!==t.size)return;const bytes=new Uint8Array(t.size);let pos=0;for(const part of t.parts){const b=atob(part);for(let i=0;i<b.length;i++)bytes[pos++]=b.charCodeAt(i);}const hash=await digest(bytes);if(hash!==t.hash)return;if(this.sounds.size>=8)this.sounds.delete(this.sounds.keys().next().value!);this.sounds.set(hash,new Blob([bytes],{type:t.mime}));this.send(p,{type:'sound-ready',hash});}
@@ -118,8 +141,8 @@ export class Mesh {
    if(!b){this.send(p,{type:'sound-missing',hash:m.hash});return;}
    if(now-p.soundAt<500)return;
    p.soundAt=now;
-   const delay=Number.isInteger(m.delayMs)&&m.delayMs>=0&&m.delayMs<=500?m.delayMs:m.at-p.offset-now;
-   if(delay < -1000||delay>2000)return;
+   const delay=soundStartDelay(now,m.at,p.offset,p.clockObservedAt,Number.isInteger(m.delayMs)?m.delayMs:undefined);
+   if(delay===null)return;
    const timer=setTimeout(()=>{this.playbackTimers.delete(timer);if(this.peers.get(p.id)===p)this.onSound(b,p.id);},Math.max(0,delay));
    this.playbackTimers.add(timer);
   }
@@ -184,7 +207,7 @@ export class Mesh {
  }
  async drain(p:Peer){const start=Date.now();while(p.dc?.readyState==='open'&&p.dc.bufferedAmount>65536){if(Date.now()-start>10000)throw Error('Dateiübertragung zu langsam');await new Promise(r=>setTimeout(r,25));}if(p.dc?.readyState!=='open')throw Error('Peer getrennt');}
  remotes():Remote[]{return [...this.peers.values()].flatMap(p=>[...p.streams.values()].filter(s=>s.getTracks().some(t=>t.readyState==='live')).map(stream=>({peer:p.id,name:p.name,stream,kind:p.labels[stream.id]||'media'})));}
- remove(id:string){const p=this.peers.get(id);clearTimeout(p?.retry);clearTimeout(p?.speechTimeout);p?.dc?.close?.();p?.updatesDc?.close?.();p?.streams?.clear();p?.readySounds?.clear();p?.offeredSounds?.clear();p?.transfer&&(p.transfer=undefined);if(p?.pendingSoundReady)for(const item of p.pendingSoundReady.values()){clearTimeout(item.timeout);item.resolve(false);}p?.pendingSoundReady?.clear();p?.pc.close();this.peers.delete(id);this.onChange();}
+ remove(id:string){const p=this.peers.get(id);clearTimeout(p?.retry);clearTimeout(p?.speechTimeout);clearInterval(p?.pingTimer);p?.dc?.close?.();p?.updatesDc?.close?.();p?.streams?.clear();p?.readySounds?.clear();p?.offeredSounds?.clear();p?.transfer&&(p.transfer=undefined);if(p?.pendingSoundReady)for(const item of p.pendingSoundReady.values()){clearTimeout(item.timeout);item.resolve(false);}p?.pendingSoundReady?.clear();p?.pc.close();this.peers.delete(id);this.onChange();}
  clear(){for(const id of this.peers.keys())this.remove(id);this.self='';}
  close(){this.setSpeaking(false);for(const timer of this.playbackTimers)clearTimeout(timer);this.playbackTimers.clear();this.clear();for(const s of this.local.values())s.getTracks().forEach(t=>t.stop());this.local.clear();this.sounds.clear();}
 }
