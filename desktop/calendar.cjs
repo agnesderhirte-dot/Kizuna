@@ -1,5 +1,4 @@
 const {z}=require('zod');
-const crypto=require('node:crypto');
 
 const meeting=z.object({
  id:z.string().regex(/^[a-zA-Z0-9_-]{8,80}$/),
@@ -55,10 +54,20 @@ function remindersDue(db,now=Date.now()){
 function esc(text){return String(text).replace(/\\/g,'\\\\').replace(/\r?\n/g,'\\n').replace(/,/g,'\\,').replace(/;/g,'\\;');}
 function utc(ms){return new Date(ms).toISOString().replace(/[-:]/g,'').replace(/\.\d{3}Z$/,'Z');}
 function fold(line){const out=[];let part='';for(const char of line){if(Buffer.byteLength(part+char,'utf8')>70){out.push(part);part=' '+char;}else part+=char;}if(part)out.push(part);return out.join('\r\n');}
-function toICS(items){
+function berlinLocal(ms){
+ const parts=Object.fromEntries(new Intl.DateTimeFormat('de-DE',{timeZone:'Europe/Berlin',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).formatToParts(new Date(ms)).filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));
+ return parts.year+parts.month+parts.day+'T'+parts.hour+parts.minute+parts.second;
+}
+function toICS(items,timeZone=Intl.DateTimeFormat().resolvedOptions().timeZone){
+ const berlin=timeZone==='Europe/Berlin';
  const lines=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//KIZUNA//Game Sessions//DE','CALSCALE:GREGORIAN','METHOD:PUBLISH'];
+ if(berlin)lines.push(
+  'X-WR-TIMEZONE:Europe/Berlin','BEGIN:VTIMEZONE','TZID:Europe/Berlin',
+  'BEGIN:DAYLIGHT','TZOFFSETFROM:+0100','TZOFFSETTO:+0200','TZNAME:CEST','DTSTART:19700329T020000','RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU','END:DAYLIGHT',
+  'BEGIN:STANDARD','TZOFFSETFROM:+0200','TZOFFSETTO:+0100','TZNAME:CET','DTSTART:19701025T030000','RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU','END:STANDARD','END:VTIMEZONE'
+ );
  for(const item of items.map(x=>meeting.parse(x))){
-  lines.push('BEGIN:VEVENT','UID:'+item.id+'@kizuna.local','DTSTAMP:'+utc(Date.now()),'DTSTART:'+utc(item.startsAt),'DTEND:'+utc(item.startsAt+item.durationMin*60000),'SUMMARY:'+esc(item.title),'DESCRIPTION:'+esc('Spiel: '+item.game+(item.participants?'\nMit: '+item.participants:'')+(item.notes?'\n'+item.notes:'')));
+  lines.push('BEGIN:VEVENT','UID:'+item.id+'@kizuna.local','DTSTAMP:'+utc(Date.now()),berlin?'DTSTART;TZID=Europe/Berlin:'+berlinLocal(item.startsAt):'DTSTART:'+utc(item.startsAt),berlin?'DTEND;TZID=Europe/Berlin:'+berlinLocal(item.startsAt+item.durationMin*60000):'DTEND:'+utc(item.startsAt+item.durationMin*60000),'SUMMARY:'+esc(item.title),'DESCRIPTION:'+esc('Spiel: '+item.game+(item.participants?'\nMit: '+item.participants:'')+(item.notes?'\n'+item.notes:'')));
   if(item.repeat==='weekly')lines.push('RRULE:FREQ=WEEKLY');
   if(item.reminderMin>0)lines.push('BEGIN:VALARM','TRIGGER:-PT'+item.reminderMin+'M','ACTION:DISPLAY','DESCRIPTION:'+esc(item.title),'END:VALARM');
   lines.push('END:VEVENT');
