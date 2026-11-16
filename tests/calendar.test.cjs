@@ -49,6 +49,17 @@ test('ICS can be imported by calendar apps and escapes user text',()=>{
  assert.ok(cal.includes('DTSTART:'));
  assert.ok(cal.includes('UID:'));
 });
+test('external message sharing is always a manual user action',()=>{
+ const main=fs.readFileSync(path.join(__dirname,'../desktop/main.cjs'),'utf8');
+ const ui=fs.readFileSync(path.join(__dirname,'../src/GameCalendar.tsx'),'utf8');
+ assert.ok(main.includes("handle('shareSession',async raw=>"));
+ assert.ok(main.includes("z.enum(['email','whatsapp'])"));
+ assert.ok(main.includes("'mailto:?subject='"));
+ assert.ok(main.includes("'https://wa.me/?text='"));
+ assert.ok(ui.includes('E-Mail vorbereiten'));
+ assert.ok(ui.includes('WhatsApp öffnen'));
+ assert.ok(ui.includes('Bitte Nachricht selbst versenden.'));
+});
 test('secure Electron wiring and UI exist and are opt-in',()=>{
  const main=fs.readFileSync(path.join(__dirname,'../desktop/main.cjs'),'utf8');
  const preload=fs.readFileSync(path.join(__dirname,'../desktop/preload.cjs'),'utf8');
