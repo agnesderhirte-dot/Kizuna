@@ -1,22 +1,49 @@
-# VoxRally 0.1.0 — engineering alpha
+# KIZUNA – private Gaming-Kommunikation (0.4.0 vorbereitet, noch nicht freigegeben)
 
-Windows desktop application for private P2P gaming sessions. This new implementation was built from the supplied requirements; the previous ChatGPT source ZIP was not available.
+KIZUNA ist eine Windows-Desktop-Anwendung auf Basis von Electron, React und WebRTC. Ziel: unkomplizierter Sprachchat, mehrere gleichzeitige Bildschirmstreams und eigene Gaming-Sounds für kleine Freundesgruppen.
 
-Implemented core: Electron/React/TypeScript, SQLite settings/history/assets, private 4-person session rooms, WebRTC microphone/camera/screen tracks, optional Windows system audio, parallel screen streams, requested quality profiles, actual RTP statistics, basic chat, imported backgrounds and soundboard, encrypted local secrets, global mute/deafen.
+**Wichtig:** `main` enthält die bisherige Ausgangsversion 0.3.2; der Entwicklungsbranch bereitet 0.4.0 vor. Der Branch `feat/retro-modern-skins` (Draft-Pull-Request #1) enthält zusätzliche Funktionen, die auf GitHub gebaut und durch Unit-Tests geprüft wurden, aber **noch nicht auf zwei realen Windows-PCs abgenommen oder an alle Nutzer verteilt wurden**.
 
-This is not yet the complete master-prompt product or a stable release. See docs/TESTING.md and HANDOFF.md for exact evidence and missing work. The Windows installer is a prototype until clean-install and physical two-PC tests pass.
+## Funktionen im Entwicklungsbranch
 
-## Usage
-1. Install the development installer when available under release/.
-2. Open Settings, set your name and save.
-3. On a trusted LAN or an existing VPN, one person creates a room. Use the reachable LAN/VPN IPv4 address if automatic selection is wrong.
-4. Copy the invitation and give it privately to friends. They paste it and join.
-5. Enable microphone explicitly. Select Screen sharing, then choose a source. System audio captures the whole system mix when enabled.
-6. Each person may share a screen simultaneously. Import your own sounds/backgrounds. No copyrighted sports/game media is bundled.
+- Private Räume bis vier Teilnehmer mit WebRTC-Audio, Kamera und gleichzeitigen Bildschirmstreams; direkte Verbindung soweit NAT und Netzwerk es zulassen.
+- Spielsound **pro fremdem Bildschirm** separat stummschalten; Sprachchat und Soundboard bleiben unabhängig hörbar.
+- Getrennte Lautstärken für Sprache, Spielton und Soundboard, zusätzlich individuelle Sprachlautstärke, Stummschaltung und Reaktions-/Soundboard-Filter je Mitspieler; Mikrofontest mit rein lokaler 3-Sekunden-Aufnahme.
+- Diagnosebericht mit technischen WebRTC-Werten zum manuellen Kopieren und vorsichtige Hinweise bei wiederholt auffälligen Audiopuffern/Netzwerkverlusten. Teilnehmernamen können im Bericht enthalten sein.
+- Streaming-Presets: Football Manager (1440p30), Gaming (1440p60), Sparmodus (1080p30), je nach erreichbarer Hardware/Netzwerkleistung.
+- Neun auswählbare Themes vom Winamp-Retro-Stil bis zu Modern Glass; Fokusmodus, Vollbild und verschiebbare Kamera.
+- Eine neue Fußballweisheit bei jedem Programmstart: 36 eigene Offline-Sprüche ohne unmittelbare Wiederholung, schließbar, passend zum aktiven Skin.
+- Skin-abhängiger Sprecherrahmen; pegelbasiert, nicht sprachspezifisch; visuelle Reaktionen und über 100 Fußball-/Gaming-/Standard-Emojis mit lokalen Favoriten.
+- Spielerprofile mit kompaktem Profilfoto (96 × 96), Bio und Lieblingsspiel; Weitergabe an verbundene Peers, keine zusätzliche Cloud-Datenbank.
+- Gaming-Kalender: Termine, wöchentliche Wiederholung, Monat und Terminliste, lokale Erinnerung bei **geöffnetem** KIZUNA, ICS-Export, manuell vorbereitete WhatsApp-/E-Mail-Nachrichten und Teilen in der Lounge.
+- Eigene WAV/MP3/OGG/FLAC-Sounds importieren und nach zweistufiger Bestätigung löschen; drei optionale, vollständig synthetisch generierte KIZUNA-Signaltöne ohne externe Aufnahmen.
+- Datenspeicherung in lokaler SQLite und verschlüsselte Geheimnisse mit Windows Secure Storage.
 
-There is no pre-provisioned public server. An invitation with 127.0.0.1 is only valid on the same PC. Different internet connections require a working VPN or a reachable TLS-protected signaling setup. Do not port-forward the plaintext embedded server to the internet.
+## Installation und Updates
 
-## Developer setup
-Node 24+, pnpm; `pnpm install --frozen-lockfile`, `pnpm build`, `pnpm start`. `pnpm test` checks security/protocol. `pnpm test:desktop` checks two local instances. `pnpm dist` builds x64 NSIS. Use a short checkout path for NSIS on Windows.
+Eine neue Windows-Installationsdatei ist **noch nicht freigegeben**. Der signierte P2P-Updateweg ist Teil der bestehenden Implementierung. Der zentrale Updatekanal ist bewusst deaktiviert, bis Publisher-Identität und Windows-Signaturprüfung korrekt eingerichtet und real getestet sind. Kein stilles Update und keine ungesicherte Umgehung.
 
-Runtime does not require Node/npm on the recipient's PC. User data belongs to Electron's per-user application-data directory. No paid services, automatic updates or background startup registration are enabled.
+Bestehende interne `voxrally://`-Links, Anwendungskonfiguration und Nutzerdatenpfade bleiben aus Kompatibilitätsgründen vorerst erhalten.
+
+## Entwicklerstart
+
+Node 24+, pnpm:
+- `pnpm install --frozen-lockfile`
+- `pnpm build` (TypeScript-Prüfung und Vite-Build)
+- `pnpm test` (Sicherheits-, Medienprotokoll- und Feature-Unit-Tests)
+- `pnpm start` (Electron lokal)
+- `pnpm test:desktop` (lokaler Desktop-Smoke-Test, geeignete Umgebung erforderlich)
+
+Vor Release ist ein manueller Test auf zwei echten PCs und unter verschiedenen Netzen erforderlich: siehe [Hardware-Abnahme](docs/HARDWARE_ACCEPTANCE.md).
+
+## Dokumente
+
+- [Verbindliche Entwicklungs-Roadmap](docs/MASTER_ROADMAP.md)
+- [Letzter Entwicklungsfortschritt](docs/DEVELOPMENT_PROGRESS.md)
+- [Übergabe an weitere KI-Sitzungen](HANDOFF.md)
+- [Windows-/Codex-Übergabe](docs/WINDOWS_HANDOFF.md)
+- [Nitro-ähnliche Funktionen nach Nutzwert](docs/NITRO_FEATURE_REVIEW.md)
+- [Tonquellen und Nutzungsrechte](docs/SOUND_SOURCES.md)
+- [Test- und Sicherheitsanforderungen](docs/TESTING.md)
+
+**Nicht abgeschlossen:** stabile Ende-zu-Ende-Tonlatenz, belastbarer 1440p60-Hardwarebenchmark, signierte zentrale Releases, automatische E-Mail-/WhatsApp-Erinnerungen und vollständige unabhängige Sicherheits-/Dauertests. Diese Funktionen dürfen nicht als produktiv verfügbar bezeichnet werden.

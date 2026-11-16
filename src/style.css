@@ -7,3 +7,247 @@
 .stream-sounds{position:relative}.stream-sounds summary{cursor:pointer;padding:8px;font-size:12px}.stream-sounds .quality-popover button{display:block;width:100%;margin:6px 0;text-align:left}.device-check video[hidden]{display:none}
 
 .update-panel{padding:16px;border:1px solid var(--accent);border-radius:12px;background:#19382f;color:#eaf8f0;margin:12px 0;font-size:12px}.update-panel button{margin:4px}.update-panel p{line-height:1.6}
+
+
+/* KIZUNA optional appearance packs - CSS only, no new dependencies. */
+.skin-fieldset{border:0;margin:0 0 24px;padding:0;min-width:0}
+.skin-fieldset legend{font-weight:700;font-size:15px;margin-bottom:7px}
+.skin-picker-help{margin:4px 0 14px!important}
+.skin-gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,125px),1fr));gap:9px}
+.skin-option{display:flex;min-width:0;flex-direction:column;align-items:stretch;text-align:left;gap:5px;padding:8px;background:#111a25;color:#f2f5ff;border:1px solid #ffffff30;border-radius:10px}
+.skin-option[aria-pressed=true]{outline:2px solid var(--accent);outline-offset:1px}
+.skin-option:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.skin-option b{font-size:12px}.skin-option small{font-size:10px;line-height:1.4;color:#bac8d8}
+.skin-selected{font-weight:700;font-size:10px;color:var(--accent);margin-top:auto}
+.skin-preview{display:flex;flex-direction:column;gap:5px;padding:7px;height:74px;width:100%;border:2px solid #5b7180;border-radius:5px;background:linear-gradient(120deg,#203943,#0c1722)}
+.skin-preview-top{display:flex;gap:3px;height:7px}
+.skin-preview-top i{width:7px;height:6px;background:#8cdbc0;border-radius:2px}
+.skin-preview-content{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.skin-preview-content i{border:1px solid #8399b4;background:linear-gradient(135deg,#31576b,#0b1928);border-radius:3px}
+.skin-preview-bottom{align-self:center;height:5px;width:50%;border-radius:3px;background:#98d2ce}
+.preview-classic18 .skin-preview,.preview-winamp90 .skin-preview{background:linear-gradient(#677489,#20293a);border-color:#c0c8d3;border-radius:1px}
+.preview-winamp90 .skin-preview-content i{border:2px ridge #b9c4d2;border-radius:0}
+.preview-purple22 .skin-preview,.preview-neonwave .skin-preview{background:linear-gradient(140deg,#61258a,#14152a);border-color:#bd85ff}
+.preview-matchday24 .skin-preview{background:linear-gradient(130deg,#273549,#161629);border-color:#e5ee86}
+.preview-portal27 .skin-preview{background:linear-gradient(130deg,#1f6f7c,#0b2431);border-color:#88d1da}
+.preview-messenger03 .skin-preview{background:linear-gradient(#d2e5f4,#4c70a4);border-color:#f3f9ff}
+.preview-messenger03 .skin-preview-content i{background:#c8e3f6;border:1px solid #4575b3}
+.preview-glassmodern .skin-preview{background:linear-gradient(115deg,#7e79b6,#172946);border-color:#deddf5;border-radius:13px}
+.preview-glassmodern .skin-preview-content i{background:#e7deff33;border-color:#e4dfff55;border-radius:9px}
+/* Immersive video-only workspace: keeps persistent mute/share buttons and stage actions. */
+.focus-ui{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) 70px}
+.focus-ui>.rail,.focus-ui>.channels,.focus-ui>.members{display:none}
+.focus-ui>main{grid-column:1;grid-row:1;display:flex;flex-direction:column;min-height:0;overflow:hidden;padding:8px 12px}
+.focus-ui>main>header,.focus-ui .chat,.focus-ui .room-sounds,.focus-ui .quality{display:none}
+.focus-ui footer{grid-column:1;grid-row:2}
+.focus-ui .video-stage{display:flex;flex:1;flex-direction:column;min-height:0}
+.focus-ui .stage-content{flex:1;min-height:0;aspect-ratio:auto}
+.focus-ui .stage-content figure{min-height:0}
+.focus-ui .stage-toolbar{flex:0 0 auto}
+.focus-ui .stage-content video{max-height:none}
+.focus-ui .stage-content .empty-stream{display:grid;place-content:center}
+.focus-toggle{flex-shrink:0;font-weight:700}
+/* Late 1990s Winamp-style chrome: lean gradients, squared corners, beveled controls. */
+.skin-winamp90{background-color:#151b2b;color:#cde4dd;font-family:Tahoma,Verdana,Arial,sans-serif}
+.skin-winamp90 .rail,.skin-winamp90 footer{background:linear-gradient(#48516a,#20283e 42%,#0a1021);border:2px ridge #9eacc0}
+.skin-winamp90 .channels,.skin-winamp90 .members{background:linear-gradient(#35405b,#141e30);border:2px ridge #899eb6}
+.skin-winamp90 button,.skin-winamp90 .panel,.skin-winamp90 .join-grid article,.skin-winamp90 .video-stage,.skin-winamp90 figure{border-radius:2px;border:2px ridge #7c8fa6;box-shadow:inset 1px 1px #b0bfd355,inset -1px -1px #050910}
+.skin-winamp90 header{padding:10px 16px;background:linear-gradient(90deg,#375377,#14192b);border:2px ridge #9daabd}
+.skin-winamp90 .eyebrow{font-family:Consolas,monospace;color:#90efa7}
+.skin-winamp90 .stage-toolbar{background:linear-gradient(#3c4b63,#1b2535)}
+.skin-winamp90 .pill{color:#9aff97}
+/* Early 2000s glossy messenger / desktop-client chrome. */
+.skin-messenger03{background-color:#254063;color:#f1f7ff}
+.skin-messenger03 .rail,.skin-messenger03 footer{background:linear-gradient(#b4c9df,#52749e 37%,#1e3a5e);border:1px solid #d5e6fa;box-shadow:inset 0 1px #ffffff80}
+.skin-messenger03 .channels,.skin-messenger03 .members{background:linear-gradient(#57799f,#172d4b)}
+.skin-messenger03 button:not(.primary){background:linear-gradient(#8cafcf,#345781);border:1px solid #9dc4ea;box-shadow:inset 0 1px #dff3ff77;color:#f7fbff;border-radius:7px}
+.skin-messenger03 .panel,.skin-messenger03 .join-grid article{background:#273e60;border:1px solid #8ab1d7;border-radius:11px}
+.skin-messenger03 header{border-radius:12px;padding:14px;background:linear-gradient(95deg,#739bcb,#223c64)}
+.skin-messenger03 .video-stage{border:2px solid #9fc4eb}
+.skin-messenger03 .stage-toolbar{background:linear-gradient(#698bb4,#2b446c)}
+/* Contemporary gamer-oriented charcoal and restrained violet lighting. */
+.skin-neonwave{background-color:#100d20;color:#f3ebff}
+.skin-neonwave .rail,.skin-neonwave footer{background:#100e20f5}
+.skin-neonwave .channels,.skin-neonwave .members{background:#1a112def}
+.skin-neonwave header{border-bottom:1px solid #a273ee;padding-bottom:16px}
+.skin-neonwave .panel,.skin-neonwave .join-grid article{background:linear-gradient(150deg,#2c1c40,#141a2d);border:1px solid #7753b6}
+.skin-neonwave button{border-color:#7853ad}
+.skin-neonwave .video-stage,.skin-neonwave figure{border:1px solid #a469e2;box-shadow:0 0 0 1px #31224c}
+.skin-neonwave .stage-toolbar{background:#1f1733}
+/* Modern, minimal translucent cards; no backdrop-filter on media frames. */
+.skin-glassmodern{background-color:#222a45;color:#f6f6ff}
+.skin-glassmodern .rail,.skin-glassmodern footer{background:#131c33df;border-color:#e4e5ff30}
+.skin-glassmodern .channels,.skin-glassmodern .members{background:#29334cdb;border-color:#e4e5ff2c}
+.skin-glassmodern .panel,.skin-glassmodern .join-grid article{background:#283952de;border:1px solid #e6e7ff35;border-radius:20px}
+.skin-glassmodern header{background:linear-gradient(110deg,#6879ae66,#28385b66);border:1px solid #ffffff45;padding:16px 20px;border-radius:22px}
+.skin-glassmodern button{border-radius:13px}
+.skin-glassmodern .video-stage{border:1px solid #ffffff49;border-radius:18px}
+.skin-glassmodern figure{border-radius:13px}
+.skin-glassmodern .stage-toolbar{background:#1d2942eb}
+@media(max-width:850px){.skin-gallery{grid-template-columns:repeat(2,minmax(0,1fr))}.focus-ui footer{padding:8px}.focus-ui footer strong,.focus-ui footer small{display:none}}
+@media(prefers-reduced-motion:reduce){.skin-option,.focus-toggle{transition:none}}
+
+
+/* Speaking indicators: only borders and shadows are animated, never media pixels. */
+.video-stage figure[data-speaking="true"]{
+ border-color:var(--speaker-accent,var(--accent));
+ box-shadow:inset 0 0 0 2px var(--speaker-accent,var(--accent)),0 0 0 2px var(--speaker-accent,var(--accent));
+}
+.video-stage figure[data-speaking="true"] figcaption{color:var(--speaker-accent,var(--accent));font-weight:700}
+.member.speaking .avatar{border:2px solid var(--speaker-accent,var(--accent));box-shadow:0 0 0 2px #ffffff17}
+.member.speaking{color:var(--speaker-accent,var(--accent))}
+.skin-classic18{--speaker-accent:#9ae8a4}
+.skin-purple22{--speaker-accent:#cf8cf9}
+.skin-matchday24{--speaker-accent:#d8ef83}
+.skin-portal27{--speaker-accent:#8ae1dc}
+.skin-winamp90{--speaker-accent:#a0fb86}
+.skin-messenger03{--speaker-accent:#92cfff}
+.skin-neonwave{--speaker-accent:#d48aff}
+.skin-glassmodern{--speaker-accent:#bdcbff}
+
+
+/* Small, locally rendered reactions: no extra video encoding or image assets. */
+.stream-reactions{position:relative}
+.stream-reactions summary{cursor:pointer;padding:8px 12px;font-size:12px;border:1px solid #ffffff30;border-radius:8px;white-space:nowrap}
+.reaction-menu{position:absolute;z-index:12;top:100%;left:0;background:#17212bee;border:1px solid #667a93;border-radius:12px;padding:12px;width:min(370px,80vw);max-height:60vh;overflow:auto;box-shadow:0 10px 30px #000c}
+.reaction-menu strong{font-size:11px;display:block;margin:4px 0 6px}
+.reaction-buttons{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
+.reaction-buttons button{min-width:0;font-size:21px;min-height:38px;padding:4px;overflow-wrap:anywhere}
+.reaction-buttons button[title$="!"]{font-size:10px;font-weight:800}
+.stream-reaction-overlay{pointer-events:none;position:absolute;z-index:6;bottom:54px;left:50%;transform:translateX(-50%);max-width:92%;display:flex;align-items:flex-end;justify-content:center;gap:10px;flex-wrap:wrap}
+.stream-reaction{min-width:55px;max-width:100px;background:#0b142ad9;color:#fff;box-shadow:0 0 0 1px var(--speaker-accent,var(--accent));border-radius:12px;padding:5px 9px;text-align:center;animation:kizuna-reaction 340ms ease-out}
+.stream-reaction strong{display:block;font-size:27px;line-height:1.2;overflow-wrap:anywhere}
+.stream-reaction strong:not(:first-child){font-size:14px}
+.stream-reaction span{display:block;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@keyframes kizuna-reaction{from{opacity:0;transform:translateY(15px) scale(.9)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(prefers-reduced-motion:reduce){.stream-reaction{animation:none}}
+
+
+/* Local, consent-driven audio troubleshooting. No background recording. */
+.audio-check{border:1px solid #ffffff25;border-radius:10px;padding:14px;margin:14px 0}
+.audio-check p{margin:8px 0;line-height:1.6}
+.audio-check meter{width:100%;height:18px;accent-color:var(--accent)}
+.audio-check-buttons{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
+.audio-check-buttons button{font-size:11px;padding:7px 10px}
+.audio-check-buttons button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* Network measurements are text only; no extra live graphs/animation. */
+.quality{overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+
+
+.stream-presets{display:grid;grid-template-columns:1fr;gap:6px;margin:12px 0}
+.stream-presets button{font-size:11px;text-align:left;padding:9px 10px;white-space:normal}
+.stream-presets button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+
+/* Independent remote game audio controls (voice and reactions unaffected). */
+.stage-toolbar .stream-sound-toggle{font-size:11px;white-space:nowrap;border:1px solid var(--speaker-accent,var(--accent));}
+.stage-toolbar .stream-sound-toggle[aria-pressed="true"]{opacity:.88;background:#3a273c;color:#fff;}
+.stage-toolbar .stream-sound-toggle:focus-visible{outline:2px solid var(--speaker-accent,var(--accent));outline-offset:2px;}
+
+
+/* Gaming schedule: compact two-column desktop view, single column on smaller windows. */
+.calendar-page{min-width:0}
+.calendar-page>h2{margin-top:0}
+.calendar-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0}
+.calendar-body{display:grid;grid-template-columns:minmax(270px,.9fr) minmax(270px,1.1fr);gap:20px;align-items:start}
+.calendar-form{display:flex;flex-direction:column;gap:10px;min-width:0}
+.calendar-form h3{margin:0}
+.calendar-form>label{display:flex;flex-direction:column;gap:5px;min-width:0;font-size:12px}
+.calendar-form input,.calendar-form select,.calendar-form textarea{width:100%;min-width:0}
+.calendar-form input[type="datetime-local"]{color-scheme:dark}
+.calendar-upcoming{display:flex;flex-direction:column;gap:6px;max-height:400px;overflow:auto}
+.calendar-upcoming button{display:flex;flex-direction:column;text-align:left;gap:4px;padding:10px 12px;max-width:100%}
+.calendar-upcoming button.selected,.calendar-upcoming button:focus-visible{outline:2px solid var(--accent)}
+.calendar-upcoming span{font-size:11px;opacity:.8}
+.calendar-month-title{display:flex;justify-content:space-between;align-items:center;gap:10px;text-transform:capitalize}
+.calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;margin:12px 0}
+.calendar-grid b{text-align:center;font-size:11px;padding:4px}
+.calendar-grid button{min-width:0;min-height:52px;padding:4px 1px;font-size:12px;display:flex;align-items:center;flex-direction:column;gap:3px}
+.calendar-grid button.outside{opacity:.35}
+.calendar-grid button.has-events{border-color:var(--accent)}
+.calendar-grid small{font-size:8px;overflow-wrap:anywhere}
+.calendar-disclaimer{font-size:11px;opacity:.85}
+@media(max-width:1100px){.calendar-body{grid-template-columns:1fr}}
+
+
+/* User profile and tiny stream avatars; no large image layers. */
+.profile-panel{display:flex;flex-direction:column;gap:10px;border:1px solid #ffffff25;border-radius:12px;padding:14px;margin:10px 0 18px}
+.profile-panel>label{display:flex;flex-direction:column;gap:5px;font-size:12px}
+.profile-panel>label input,.profile-panel>label textarea{min-width:0;width:100%}
+.profile-preview{display:flex;align-items:center;gap:12px;min-width:0}
+.profile-preview>div:nth-child(2){min-width:0}
+.profile-preview strong,.profile-preview small{display:block;overflow:hidden;text-overflow:ellipsis}
+.profile-preview p{font-size:11px;overflow-wrap:anywhere}
+.profile-avatar{flex:0 0 72px;width:72px;height:72px;display:grid;place-items:center;background:#26364a;border:2px solid var(--accent);border-radius:50%;overflow:hidden;font-size:20px;font-weight:bold}
+.profile-avatar img,.members .avatar img,.tile-avatar{width:100%;height:100%;object-fit:cover}
+.profile-actions{display:flex;gap:8px;flex-wrap:wrap}
+.profile-panel>p{font-size:11px;line-height:1.5}
+.members .avatar{overflow:hidden}
+.tile-avatar{display:inline-block;width:20px;height:20px;border-radius:50%;vertical-align:middle;margin-right:7px;border:1px solid #ffffff70}
+
+
+/* Emoji catalog is mounted only while open; lightweight local favorites. */
+.reaction-filters{display:flex;align-items:center;gap:7px;margin-bottom:9px}
+.reaction-filters input{flex:1;min-width:0;font-size:11px;padding:8px}
+.reaction-filters button{flex:0 0 auto;font-size:10px}
+.reaction-choice{position:relative;min-width:0;display:block}
+.reaction-choice .reaction-send{display:block;width:100%;height:44px;padding:3px 5px 12px;overflow-wrap:anywhere}
+.reaction-choice .reaction-star{position:absolute;bottom:0;right:0;font-size:11px;width:19px;min-height:17px;padding:0;border:0;background:#0005;color:#ffe19c}
+.reaction-choice .reaction-star[aria-pressed="true"]{color:#ffda68}
+.reaction-choice .reaction-star:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.reaction-menu>small{font-size:9px}
+
+
+/* Voice-only controls remain accessible in focused and full-screen video views. */
+.participant-audio{position:relative;flex:0 0 auto}
+.participant-audio>button{font-size:11px}
+.participant-audio-options{position:absolute;z-index:15;top:calc(100% + 6px);left:0;max-height:55vh;overflow:auto;width:min(340px,86vw);padding:13px;background:#17212bf5;border:1px solid #8391a6;border-radius:11px;box-shadow:0 10px 26px #000a}
+.participant-audio-options>strong{font-size:12px}
+.participant-audio-options>p{font-size:11px;line-height:1.4;color:#c3cfdb}
+.participant-voice{margin:12px 0;padding-top:8px;border-top:1px solid #ffffff22}
+.participant-voice-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.participant-voice-head b{font-size:12px}
+.participant-voice-head button{font-size:10px}
+.participant-voice label{display:block;font-size:11px;margin:5px 0}
+.participant-voice input[type="range"]{display:block;width:100%;accent-color:var(--accent);padding:0}
+.participant-audio-options>button{font-size:10px}
+@media(max-width:850px){.participant-audio-options{position:fixed;top:auto;left:12px;bottom:85px;max-height:60vh}}
+
+
+.participant-privacy{display:flex;flex-direction:column;gap:4px;margin:6px 0}
+.participant-privacy label{display:flex;align-items:center;gap:7px;font-size:10px;margin:3px 0;line-height:1.4}
+.participant-privacy input[type="checkbox"]{width:auto;margin:0;accent-color:var(--accent)}
+
+
+.quality-copy{display:inline-flex;align-items:center;font-size:10px;padding:7px 12px;margin:0 0 9px;border:1px solid var(--accent);color:var(--accent)}
+.quality-copy:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+
+.sound-library-card{min-width:0;border:1px solid #ffffff22;border-radius:10px;padding:7px;background:#131b25b5}
+.sound-library-card>button:first-child{width:100%;min-height:94px;text-align:center}
+.sound-library-card .sound-remove-button{width:100%;min-height:30px;padding:7px 10px;margin-top:6px;font-size:10px;opacity:.86}
+.sound-removal-confirm{display:flex;gap:5px;margin-top:7px;flex-wrap:wrap}
+.sound-removal-confirm button{flex:1;min-width:86px;min-height:34px;padding:7px 8px;font-size:10px}
+.sound-removal-confirm button:first-child{border-color:#d08080}
+
+
+/* Startup football wisdom: offline, one per app start, adapted to the active skin. */
+.kickoff-wisdom{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 16px;margin:0 0 14px;border:1px solid color-mix(in srgb,var(--accent) 35%,transparent);border-left:3px solid var(--accent);border-radius:10px;background:color-mix(in srgb,var(--accent) 7%,#151c26);min-width:0}
+.kickoff-wisdom>div{min-width:0}
+.kickoff-wisdom-kicker{display:block;color:var(--accent);font-size:9px;font-weight:750;letter-spacing:.11em}
+.kickoff-wisdom p{font-size:12px;font-weight:500;line-height:1.5;margin:5px 0 0;overflow-wrap:anywhere;color:#f1f4f8}
+.kickoff-wisdom>button{flex:0 0 auto;width:30px;min-height:30px;padding:3px;line-height:1;font-size:20px;background:transparent;color:inherit;opacity:.7;border:1px solid transparent}
+.kickoff-wisdom>button:hover,.kickoff-wisdom>button:focus-visible{opacity:1;border-color:var(--accent)}
+@media(max-width:620px){.kickoff-wisdom{padding:10px 12px}.kickoff-wisdom p{font-size:11px}}
+
+
+/* Fixed-height desktop layout: sidebar content must scroll INSIDE its grid row,
+   never overflow into the bottom media controls. Reproduced by Windows CI. */
+.app>.channels,.app>.rail,.app>.members{
+ min-height:0;
+ overflow-y:auto;
+ overflow-x:hidden;
+ overscroll-behavior:contain;
+ scrollbar-width:thin;
+}
+.app>footer{min-width:0}

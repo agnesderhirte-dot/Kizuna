@@ -14,6 +14,13 @@ function verifyInstaller(file, thumbprint) {
       {windowsHide:true,timeout:30000}, error => resolve(error ? 'Windows-Signatur fehlt, ist ungültig oder stammt nicht vom freigegebenen Herausgeber.' : null));
   });
 }
+function summarizeReleaseNotes(input){
+ let raw='';
+ if(typeof input==='string')raw=input;
+ else if(Array.isArray(input))raw=input.map(x=>typeof x?.note==='string'?x.note:'').filter(Boolean).join('\n');
+ const plain=raw.replace(/<[^>]*>/g,' ').replace(/\[([^\]]+)\]\([^)]*\)/g,'$1').replace(/[\\\r\t]+/g,' ').replace(/\n{3,}/g,'\n\n').trim();
+ return plain.length>650?plain.slice(0,647)+'…':plain;
+}
 function wire({updater,dialog,win,isBusy,log=console}) {
   let ready=false,prompting=false,postponed=false;
   updater.autoDownload=false;updater.autoInstallOnAppQuit=false;updater.allowPrerelease=false;updater.allowDowngrade=false;
@@ -30,7 +37,7 @@ function wire({updater,dialog,win,isBusy,log=console}) {
   updater.on('update-available',async info=>{
     if(prompting)return;prompting=true;
     try {
-      const {response}=await show({type:'info',message:`KIZUNA ${info.version} ist verfügbar.`,detail:'Der Download startet nach deiner Auswahl. Installiert wird erst, nachdem Raum und Streams beendet sind.',buttons:['Jetzt aktualisieren','Später'],defaultId:0,cancelId:1});
+      const {response}=await show({type:'info',message:`KIZUNA ${info.version} ist verfügbar.`,detail:[summarizeReleaseNotes(info.releaseNotes),'Der Download startet nach deiner Auswahl. Installiert wird erst, nachdem Raum und Streams beendet sind.'].filter(Boolean).join('\n\n'),buttons:['Jetzt aktualisieren','Später'],defaultId:0,cancelId:1});
       if(response===0)await updater.downloadUpdate();
     }catch(e){log.warn('Update download failed',e.code||e.name);}finally{prompting=false;void offerInstall();}
   });
@@ -48,4 +55,4 @@ function start({app,dialog,win,isBusy}) {
   autoUpdater.verifyUpdateCodeSignature=(_names,file)=>verifyInstaller(file,config.certificateThumbprint);
   const controller=wire({updater:autoUpdater,dialog,win,isBusy});app.once('will-quit',controller.stop);void controller.check();
 }
-module.exports={start,wire,validConfig,verifyInstaller};
+module.exports={start,wire,validConfig,verifyInstaller,summarizeReleaseNotes};

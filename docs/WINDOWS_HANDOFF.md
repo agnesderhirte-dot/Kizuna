@@ -1,0 +1,67 @@
+# KIZUNA – Übergabe für die Windows-/Codex-Phase
+
+**Status:** Vorbereitung für Version 0.4.0 im Branch `feat/retro-modern-skins`, Draft-PR #1. `main` und bestehende Installationen sind **unverändert**. Es gibt **keinen** freigegebenen Installer und **keine** automatische Veröffentlichung.
+
+## VORRANGIG: Gewünschtes Update **in der vorhandenen KIZUNA-App**
+Der Nutzer wünscht **keine manuelle EXE-Neuinstallation**. Der alte Client 0.3.2 besitzt bereits einen P2P-Updater. Der sichere Weg ist in [IN_APP_UPDATE.md](IN_APP_UPDATE.md) detailliert beschrieben.
+
+- Einen signierten Ed25519-Update-Manifestteil neben dem GitHub-geprüften Updatepaket lokal mit `node scripts/prepare-peer-update.cjs <Installerpfad> <SHA256-Dateipfad>` erzeugen, **nur wenn** der ursprünglich zur installierten Version gehörende private Schlüssel auf dem Windows-PC vorhanden ist.
+- Schlüssel niemals an ChatGPT, GitHub, Codex oder GitHub-Actions-Ausgaben übermitteln; kein Ersatzschlüssel ohne bewusst freigegebene Vertrauensmigration.
+- Bestehende KIZUNA-App: Ein weiterer Teilnehmer stellt das signierte Paket in einem privaten P2P-Raum bereit; der Empfänger klickt „Update herunterladen“ und nach Verlassen des Raums „Geprüftes Update installieren“.
+- Automatische zentrale GitHub-Updates sind für die installierte 0.3.2 mangels aktivierten Releasekanals **nicht möglich**. GitHub-Artefakt allein ist kein installierbares In-App-Update.
+- Falls der ursprüngliche private Schlüssel fehlt oder kein zweiter Peer verfügbar ist, ist dieser Updateweg blockiert; keine Signaturprüfung umgehen.
+
+## A. Vor dem ersten Test
+
+- Windows 10/11, funktionierendes Mikrofon/Headset, möglichst zwei physische PCs; für reale P2P-Tests zwei unterschiedliche Netzwerkanschlüsse hilfreich.
+- Repository klonen und **den Entwicklungsbranch** `feat/retro-modern-skins` verwenden, nicht einen ungetesteten Stand aus `main`.
+- Node.js 24 und pnpm 10 installieren; im Repo `pnpm install --frozen-lockfile`, `pnpm build`, `pnpm test`, anschließend `pnpm test:desktop` ausführen.
+- Bestehende Nutzerdaten unter `%APPDATA%\\VoxRally` **vor dem ersten Upgrade sichern** (SQLite inklusive WAL/SHM, Profilbilder, Sounds, Settings).
+- Für die Testphase keine zentrale automatische Updatequelle und keinen unsignierten fremden Installer aktivieren.
+
+## B. Windows- und Zwei-PC-Abnahme nach Priorität
+
+1. **Datenmigration 0.3.2 → vorbereitete 0.4.0:** Datenbank nach neuer Transaktionsmigration (Version 2) öffnen; Einstellungen, Chatverlauf, Profilbild, eigene Hintergründe/Sounds und Kalender nach Neustart nachweisen. Alte `de.voxrally.desktop`/ `voxrally://`-Identität muss weiter funktionieren.
+2. **Mikrofon und Ton:** lokaler Selbsttest, Sprache mit zwei Freunden, Soundboard + Spielaudio getrennt, individuelle Mute-/Lautstärkeschalter; insbesondere keine doppelten Töne im Fokus-/Gitter-/Vollbildmodus.
+3. **Verzögerung messen:** End-to-End-Audio-/Video-Latenz mit zwei PCs aufnehmen, nicht nur WebRTC-RTT/Jitter ablesen. Upload im Hintergrund erzeugen und vergleichen. Schwankungen dokumentieren.
+4. **1440p60:** denselben Football-Manager-Inhalt abwechselnd als 1440p30, 1440p60, 1080p30 senden; auf Empfangs-PC FPS, Bitrate, Paketverlust, Puffer sowie CPU/GPU/RAM und tatsächliche Schärfe messen. Beide Nutzer übertragen anschließend gleichzeitig.
+5. **Stabilität:** Raumwechsel, Abbruch, Sleep/Wake, Netzwerkwechsel, 1-Stunden- und 4-Stunden-Soak-Test. Prüfen, dass Mikrofon- und Bildschirmfreigaben nach dem Verlassen nicht verspätet wieder aktiv werden; lokaler Signaling-Port muss schließen.
+6. **Optik und Nutzerführung:** neun Skins, Profilbilder, neue Start-Weisheiten, Kalender, Emoji-Overlays, Soundboard-Löschung und Einstellungen bei verschiedenen Fenstergrößen überprüfen.
+7. **Sicherer Upgradeweg:** Erst nach den Tests Windows-Publisherzertifikat und Release-Repo/-Kanal konfigurieren, Authenticode-Signatur validieren, Freigabe durch Auftraggeber einholen und anschließend eine **installierte** 0.3.2-Variante auf die nächste Version aktualisieren, ohne Datenverlust.
+
+## C. Minimale Messdaten pro Hardware-/Streamingtest
+
+- Windows-Version, CPU, GPU, verfügbare Uploadrate, Transport (direkt/STUN/TURN), Anzahl Teilnehmer.
+- Gewähltes und tatsächlich ankommendes Videoformat; angeforderte/empfangene FPS und Bitrate, Frame-Drops, Videoverlust.
+- Audio-Jitter, Audiopuffer, Audioverlust, RTT sowie separate echte Ende-zu-Ende-Verzögerung in Millisekunden.
+- RAM-/CPU-/GPU-Auslastung und subjektive Ton-/Bildqualität über die Testdauer.
+- Fehlermeldungen, Git-SHA, KIZUNA-Version und wenn möglich anonymisierter Diagnosebericht. Teilnehmernamen vor Weitergabe entfernen.
+
+## D. Was jetzt ohne deinen Windows-PC vorbereitet ist
+
+- GitHub Actions für TypeScript-Build, Unit-/Sicherheitsprüfungen und Runtime-/Dev-Dependency-Audit.
+- Versionierte, transaktionale Datenbankmigration für Version 2 und vorbereitete App-Version **0.4.0**.
+- Medien-Lebenszyklusprüfungen, Sound-Cache-Limits, Signaling-Abbruch-/Queue-Schutz, Bildimport-Grenzen.
+- Neun Designs, Sprecherrahmen, Emoji-Overlays, private Soundbibliothek, Kalender, Profile und Start-Fußballweisheiten.
+- Updatecode ist vorhanden, aber eine reale signierte Windows-Releasekette **nicht** konfiguriert.
+
+## E. Codex-Arbeitsauftrag auf dem Windows-PC
+
+> Übernimm das Repository agnesderhirte-dot/Kizuna und den Entwicklungsbranch feat/retro-modern-skins; beachte docs/MASTER_ROADMAP.md, docs/DEVELOPMENT_PROGRESS.md, docs/SECURITY_AUDIT.md und diesen Windows-Handoff. Beginne mit dem Vergleich der aktuellen Git-SHA und CI-Ergebnisse, baue die vorbereitete Version 0.4.0, führe die Desktop- und Zwei-PC-Abnahmetests gemäß Abschnitt B durch und behandle gefundene Probleme nach Priorität P0 vor P1. Verändere weder App-ID noch voxrally://-Links, bestehenden UserData-Pfad oder Signatur-Vertrauensbasis. Gib bei jeder Änderung Tests, Messwerte und verbleibende Risiken an. Kein Merge nach main, keine signaturlose Umgehung, kein produktiver Installer und kein Nutzer-Update ohne ausdrückliche Freigabe. Wenn eine Aufgabe wegen fehlender Hardware/Zertifikate nicht testbar ist, dokumentiere das statt einen Erfolg zu behaupten.
+
+## F. Freigabekriterien
+
+- Alle Builds und Tests auf dem tatsächlich zu veröffentlichenden Commit grün.
+- Datenmigration inklusive Wiederherstellungsprobe und Neustart funktioniert.
+- Echte Tonqualität und Latenz geprüft; Ergebnis nachvollziehbar dokumentiert.
+- 1440p60 unter der vorhandenen Hardware-/Netzwerkkonfiguration ausreichend stabil, ohne pauschale Garantie.
+- Sicherheitsrisiken geprüft, kein offenes schwerwiegendes Problem.
+- Signierter, verifizierbarer Releaseweg; einwilligungsbasierter Download und keine Installation während eines aktiven Spielabends.
+- **Ausdrückliche Freigabe**, bevor ein Update an andere Nutzer verteilt wird.
+
+## Zusätzliche Windows-Prüfungen für die letzte Sicherheitsrunde
+1. Auf einer **Kopie der alten 0.3.2-Nutzerdaten** starten. Vor v2-Schemamigration muss im UserData-Verzeichnis `voxrally.sqlite.pre-0.4.0-backup` entstehen. Es muss ein konsistentes SQLite-v1-Snapshot enthalten; Daten, Einstellungen, Kalender und Chat vergleichen und eine **Wiederherstellung aus diesem Backup** erproben.
+2. Testen, dass die Sicherung bei einem zweiten KIZUNA-Start nicht überschrieben wird. Der Backup-Pfad enthält sensible Chat-/Profildaten und darf nicht versehentlich geteilt oder veröffentlicht werden.
+3. Zwei aufeinanderfolgende Räume betreten; P2P-Update-Angebot nur im ersten Raum auswählen, Dialog lange offen halten und dann den Raum verlassen. Der spätere Dialogabschluss darf **keine** Updateangebote im neuen Raum senden.
+4. Vollständig signierten und geprüften Update-Download durchführen, dann Raum verlassen. Installer darf nur nach ausdrücklicher manueller Freigabe starten, niemals während eines aktiven Streams.
+5. GHSA-g3hv-75wg-m249: `minimatch` in zwei electron-builder-Transitiven mit moderatem Schweregrad. Vor einem Upstream-Build-Tool-Upgrade danach echten NSIS-Installer und signierte Updatekette testen; keine blinde globale Überschreibung auf Major 11.

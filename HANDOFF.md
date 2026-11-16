@@ -1,3 +1,171 @@
+# AKTUELLSTE ERGÄNZUNG – 0.4.0 als In-App-Update statt Neuinstallation
+
+Der Nutzer möchte **ausschließlich eine Aktualisierung der bestehenden KIZUNA-Installation**, keine manuell gestartete neue EXE. Diese Vorgabe überlagert ältere Windows-Installer-Testhinweise.
+
+- P2P-Updater der installierten 0.3.2 ist vorhanden. Der Ed25519-Public-Key in `main` und in 0.4.0 ist identisch.
+- Der neue lokale Helper `scripts/prepare-peer-update.cjs` prüft Installer gegen `.sha256`, signiert die Update-Metadaten mit **dem ursprünglichen privaten Key** `build/private/update-key.pem`, prüft die Signatur gegen den eingebetteten Public-Key und gibt eine lokale `.exe.update.json` aus. Niemals Schlüsselmaterial hochladen oder den alten vertrauenswürdigen Schlüssel ersetzen.
+- Ein bereits installierter 0.3.2-Client kann ein **signiertes** Update einem verbundenen Peer anbieten und von ihm empfangen. Empfänger startet die Installation erst nach erfolgreichem Hash-/Signaturnachweis und bewusstem Installationsklick bei beendetem Raum.
+- Der zentrale GitHub-Updater bleibt deaktiviert; ein GitHub-Artefakt allein aktualisiert den vorhandenen Client nicht. Fehlt der alte private Schlüssel oder ein zweiter Peer, ist dieser In-App-Weg noch **blockiert**.
+- [Vollständige Ablaufbeschreibung](docs/IN_APP_UPDATE.md). Keine manuelle EXE-Neuinstallation als erfülltes Nutzerziel ausgeben. Keine Änderung an `main`, kein Merge/Release.
+
+---
+
+# AKTUELLSTE ÜBERGABE – zusätzlicher GitHub-Durchlauf, 16.11.2026
+
+Diese Kurzfassung ist aktueller als die historischen Abschnitte darunter.
+
+- Entwicklungsbranch `feat/retro-modern-skins`, Draft-PR #1, vorbereitete Version **0.4.0**. Keine Änderung von `main` oder laufenden Windows-Installationen.
+- **Ergebnis vor den abschließenden Dokumentationscommits:** GitHub CI [43853358827](https://github.com/agnesderhirte-dot/Kizuna/actions/runs/43853358827) prüfte den Funktionscode mit **119 bestandenen Tests, 0 Fehlern**; Build und Runtime-/Dev-Dependency-High-Audit grün. Windows-Paket-Smoketest [43853358803](https://github.com/agnesderhirte-dot/Kizuna/actions/runs/43853358803) ebenfalls erfolgreich. Für den finalen Commit unterhalb **immer GitHub-Actions-SHA erneut vergleichen**.
+- Neu: `src/updates.ts` verhindert raumübergreifende Updateangebote und verspätete Update-Aktionen. Nur vollständig geprüfte Installer bleiben nach Room-Exit für späteren manuellen Installationsklick vorhanden.
+- Neu: `desktop/migrations.cjs` legt **vor** SQLite-v1→v2-Migration ein einmaliges, überprüftes SQLite-V1-Backup durch `VACUUM INTO` an (`voxrally.sqlite.pre-0.4.0-backup`, privates UserData-Verzeichnis). Verunreinigte Backups blockieren das Upgrade; nicht automatisch löschen/überschreiben. `tests/migrations.test.cjs` prüft Snapshot, v1-Inhalt und Rollback.
+- Sicherheitsprüfung exakt: zwei moderate **Dev-Abhängigkeit**-Warnungen zu `minimatch` aus `electron-builder`, Advisory `GHSA-g3hv-75wg-m249`. Kein Runtime-Advisory gefunden. Major-11-Override ohne getestete NSIS-/Windows-Kompatibilität unterlassen.
+- Windows-Bausteine weiterhin ausstehend: manuelle Datenrücksicherung aus dem V1-Snapshot, echte Zwei-PC-Audio-/1440p60-Latenztests, signierter Publisher-Release, Tests der installierten Updatestrecke. Kein Merge, keine Freigabe, keine EXE an andere Nutzer.
+- Weitere Einzelheiten: `docs/MASTER_ROADMAP.md`, `docs/WINDOWS_HANDOFF.md`, `docs/SECURITY_AUDIT.md`.
+
+---
+
+# AKTUELLSTE ÜBERGABE – 16.11.2026 / bis zur Windows-/Codex-Phase
+
+Die folgende Sektion ist der **aktuellste** verbindliche Stand; ältere Bereiche weiter unten sind historische Übergaben.
+
+## Projekt und Release-Schutz
+- Repository: https://github.com/agnesderhirte-dot/Kizuna
+- Branch `feat/retro-modern-skins`, [Draft-PR #1](https://github.com/agnesderhirte-dot/Kizuna/pull/1), kein Merge nach `main`.
+- Ausgelieferte/alte Basis 0.3.2; im Branch ist **0.4.0** als nächstes **unveröffentlichtes** Feature-Release vorbereitet. Alte App-ID `de.voxrally.desktop`, `voxrally://`, EXE-Name `VoxRally` und `%APPDATA%\\VoxRally` bleiben gleich. Kein Installer erstellt, keine Signatur gewechselt, keine Endnutzer aktualisiert.
+- Zentrale Updates sind mangels Publisher-Codesignatur weiterhin deaktiviert. P2P-Updatefunktion hält ihren bestehenden Ed25519-Public-Key; keine signaturlose Abkürzung.
+- Das aktuelle CI-Ergebnis muss stets für die aktuelle PR-Head-SHA geprüft werden; frühere Testergebnisse nicht auf neue Commits übertragen.
+
+## Letzte direkt über GitHub erledigte Aufgaben
+- KZ-021: verspätete `getUserMedia`-/`getDisplayMedia`-Freigaben über `sessionEpoch` nach Room-Exit verwerfen und Tracks stoppen.
+- KZ-022: transaktionale SQLite-Migration v1→v2 mit Validierung von Tabellen/Spalten, Rollback und Erhalt von Einstellungen, Chat und Assets.
+- KZ-023: lokale WebSocket-Signaling-Server bei Room-Exit/-Wechsel zuverlässig schließen, Capture-Tickets verwerfen.
+- KZ-024: GitHub CI prüft TypeScript/Vite/Node-Tests und High/Critical-Advisories für Produktions- **und** Entwicklungsabhängigkeiten. Zwei Moderate im Dev-Scope wurden bei Run 43849225448 gemeldet, keine High/Critical.
+- UI-Korrekturen: eigenes Profilfoto in der Sidebar, Spielkalender mit korrekter Überschrift.
+- Nutzwertanalyse Nitro-Funktionen in `docs/NITRO_FEATURE_REVIEW.md`; Zusatzfeatures mit unnötigem Bandbreiten-/GPU-/Speicherbedarf bewusst zurückgestellt.
+- Weiter vorhanden: Skins, Sprecherrahmen, 1440p30/60-Presets, Voice-/Game-Audio-Mixer, Soundboard, Emoji-Reaktionen, Profile, Kalender und 36 Fußballweisheiten.
+
+## Nächster verpflichtender Schritt
+- **`docs/WINDOWS_HANDOFF.md`** enthält einen vollständigen Codex-Arbeitsauftrag, Tests, Sicherung der alten Nutzerdateien, Zwei-PC-Latenz-/Bild-/Tontests, 1440p60-Benchmark und Release-Gates.
+- **`docs/HARDWARE_ACCEPTANCE.md`** ist die systematische Abnahmecheckliste; `docs/SECURITY_AUDIT.md` listet offene Risiken.
+- Realer Test auf dem Windows-PC notwendig: Mikrofon, System-/Spielaudio, Netzwerkabbruch und RAM/CPU/GPU mit zwei realen 1440p60-Streams, Upgrade aus installierter 0.3.2, Windows-Codesignatur und Nutzereinwilligung.
+- Automatische externe E-Mail-/WhatsApp-Zustellung benötigt einen autorisierten Provider, Einwilligung und gegebenenfalls eigene Gebühren.
+- Kein unabhängiger Pentest und keine echte langlaufende Windows-Abnahme erfolgt; diese nicht als erledigt bezeichnen.
+
+---
+
+# AKTUELLSTE ÜBERGABE – 16.11.2026 / KZ-020 und KZ-014
+
+Diese Kopfsektion ist aktueller als alle nachfolgenden historischen Statusangaben.
+
+- Projekt: https://github.com/agnesderhirte-dot/Kizuna, Entwicklungsbranch `feat/retro-modern-skins`, Draft-PR #1, kein Merge.
+- **Neue Startfunktion KZ-020:** 36 kurze eigene Fußballweisheiten, je ein Spruch pro App-Start, letzter numerischer Index nur lokal gespeichert (`localStorage`), keine unmittelbare Wiederholung. Schließbar, skinfarbener Banner unter Haupttitel, Ausblendung beim erfolgreichen Raumeintritt. Implementierung `src/FootballWisdom.ts`, `src/main.tsx`, `src/style.css`; Tests `tests/football-wisdom.test.cjs`.
+- **KZ-014 Codeoptimierungen:** `src/MediaActivityGate.ts` verhindert redundante IPC-Meldungen aktiver Medien; `src/SoundPlaybackPool.ts` gibt Audio und Blob-URLs bei Ende/Stop/Fehler/Room-Exit frei; Audio-Sink wird bei Lautstärkeregelung nicht ständig neu initialisiert. Asynchroner Hintergrundbildwechsel akzeptiert nur gültige aktuelle Ergebnisse.
+- **Geprüfter Programmstand:** Commit `f11ca1abaa9cbbce563ef462d965abb27c55ebba` [GitHub Actions Run 43835700399](https://github.com/agnesderhirte-dot/Kizuna/actions/runs/43835700399): TypeScript/Vite-Build erfolgreich, **83 Tests bestanden / 0 Fehler / 1 übersprungen**, Runtime-Dependency-Audit ohne gemeldete High/Critical-Advisories. Danach wurden dokumentierende Commits erstellt; letzten CI-Run prüfen.
+- **Offen:** echte Windows-UI, CPU/GPU-/Netzwerkmessung, Audio-Ende-zu-Ende-Latenz auf zwei PCs, stabile 1440p60-Leistung unter Last, unabhängige finale KZ-014-Prüfung und signierte Updateveröffentlichung. Die installierte App und `main` sind weiterhin unverändert. Keine Nutzeraktualisierung veranlassen, solange keine Releasefreigabe vorliegt.
+- Details: `docs/MASTER_ROADMAP.md`, `docs/DEVELOPMENT_PROGRESS.md`, `docs/HARDWARE_ACCEPTANCE.md`.
+
+---
+
+# AKTUELLSTE ÜBERGABE – 16.11.2026 / Megaprompt KZ-013 & KZ-014
+
+- Entwicklungsbranch `feat/retro-modern-skins`, Draft-PR https://github.com/agnesderhirte-dot/Kizuna/pull/1, `main` unverändert.
+- **Geprüfter Quellstand:** `f61ec2a953ab41fc6c40ef0187ce9f642e0047d3`, [CI-Run 43828763644](https://github.com/agnesderhirte-dot/Kizuna/actions/runs/43828763644): Build grün, **74 Tests erfolgreich, 0 fehlgeschlagen, 1 übersprungen**; `pnpm audit --prod --audit-level high` erfolgreich, keine bekannten Runtime-Lücken.
+- **Neu:** WebRTC-ICE-Schema-/Längenprüfung, Schutz vor doppelten DataChannels, Peer-Sound-ACK-Cache-Limits, Audio-/Stream-/Timer-Cleanup, Cloud-Signaling-Queue-/Rate-Limits, Bild-Dimensionen vor nativer Dekodierung.
+- **Dateien:** `src/mesh.ts`, `src/cloud.ts`, `desktop/image-limits.cjs`, `desktop/main.cjs`, `tests/mesh-hardening.test.cjs`, `tests/signaling-hardening.test.cjs`, `tests/image-limits.test.cjs`, `.github/workflows/validate.yml`.
+- **Vorläufiges Audit:** `docs/SECURITY_AUDIT.md`. Roadmap `docs/MASTER_ROADMAP.md` (KZ-013/014/019), Testmatrix `docs/HARDWARE_ACCEPTANCE.md`.
+- **Offen:** unabhängige KZ-014-Endprüfung, reale Windows- und Zwei-PC-/Audio-/1440p60-Dauertests, Signatur und geprüfter zentraler Updater. **Keine Releasefreigabe**; keine installierte Software verändert.
+- Nach Dokumentationscommits jeweils neuesten CI-SHA prüfen; vorherige Testbelege nicht automatisch auf neue Programmänderungen übertragen.
+
+---
+
+# AKTUELLSTE ÜBERGABE – 16.11.2026, KZ-016–018
+
+Diese Hinweise überschreiben die älteren Statusangaben weiter unten; die alten Angaben sind nur noch historische Momentaufnahmen.
+
+- Branch: `feat/retro-modern-skins`; Draft-PR https://github.com/agnesderhirte-dot/Kizuna/pull/1; `main` und installierte Windows-Version nicht verändert.
+- **Neu im Branch:** Teilnehmerbezogene Sprachausgabe (individueller Pegel und Stumm), pro Peer lokale Unterdrückung von Reaktionen und Soundboard-Clips. Die Person sendet weiterhin ungestört, der Empfänger kontrolliert nur sein eigenes Wiedergabemischpult. `src/ParticipantAudio.tsx`, `src/audio-mix.ts`, `src/main.tsx`, `src/mesh.ts`.
+- **Diagnosebericht:** `src/diagnostic-report.ts` und validierte `copyDiagnostics`-IPC. Nur manuelles Kopieren, kein automatischer Upload. Kann Teilnehmernamen enthalten; vor Weitergabe prüfen.
+- **QualityAdvisor:** `src/QualityAdvisor.ts` und erweiterte `src/QualityDiagnostics.ts` zeigen vorsichtige Hinweise erst nach 3 aufeinanderfolgenden hohen Audio-/Videopaketverlust-, Audiopuffer- oder RTT-Werten. Kein bloßer FPS-Alarm für statische Bilder und keine automatische Netzwerkeinstellung.
+- **Sound löschen:** `deleteSound`-IPC mit validierter SHA-256-ID, nur `kind==='sound'`, zweistufige UI-Bestätigung. Andere Assets bleiben unangetastet.
+- **CI-Nachweis Code:** GitHub Actions https://github.com/agnesderhirte-dot/Kizuna/actions/runs/43825148728: `pnpm build` erfolgreich, `pnpm test` **66 bestanden, 0 fehlgeschlagen, 1 übersprungen**. Spätere Dokumentations-/Hinweistext-Commits sind anhand des letzten CI-Runs noch zu prüfen.
+- **Noch offen:** echte Windows- und Zwei-PC-Tests, 1440p60 unter realer Last, End-to-End-Tonlatenz, abschließendes Security- und Performanceaudit, signierter zentraler Update-Release und ausdrückliche Freigabe. Kein Installer/Update ausgeliefert.
+- Master-Roadmap: `docs/MASTER_ROADMAP.md`; Testmatrix: `docs/HARDWARE_ACCEPTANCE.md`; Entwicklungsverlauf: `docs/DEVELOPMENT_PROGRESS.md`.
+
+---
+
+# AKTUELLER HANDOFF – 16.11.2026 (ohne Codex-Sitzung)
+
+Diese Kopfsektion ist der **neueste Stand**. Ältere Übergaben weiter unten sind historische Momentaufnahmen und dürfen nicht unkritisch als aktueller Status übernommen werden.
+
+## Projekt
+- Repo: https://github.com/agnesderhirte-dot/Kizuna
+- Entwicklungsbranch: `feat/retro-modern-skins`
+- Draft-Pull-Request: https://github.com/agnesderhirte-dot/Kizuna/pull/1
+- Ausgangsversion: 0.3.2 in `main`; **kein Merge, keine EXE, kein Update an Nutzer veröffentlicht**.
+- Letzter sicher vollständig geprüfter Stand vor aktualisiertem CI-Workflow: GitHub Actions https://github.com/agnesderhirte-dot/Kizuna/actions/runs/43821435998, erfolgreich. Für jeden neueren Commit neuesten CI-Lauf prüfen; Dokumentations-/Workflow-Änderungen wurden ebenfalls gepusht.
+- `pnpm build` und `pnpm test`: zuletzt 51 Tests erfolgreich, 0 fehlgeschlagen, 1 übersprungen. Dieser Stand ist kein realer Zwei-PC-Test.
+
+## Neu implementiert, vom GitHub-CI-Build gedeckt
+- Skins (9) und Fokusmodus, aktive Sprecherrahmen mit Pegelheuristik, Sync-Fußball-Reaktionen, Suchfeld und Favoriten.
+- Separate Spielsound-Stummschaltung je fremdem Bildschirm, Sprach-/Soundboard-Ton davon unabhängig. Sichtbarer Bildstream und sein Spielton werden über dasselbe HTMLMediaElement wiedergegeben; Soundboard-Dateien pro Peer cachebar.
+- Audio/Video-Diagnose (FSP/Bitrate/RTT/Jitter/Paketverlust/Audiopuffer/kaschierte Samples), Mikrofon-Selbsttest mit rein lokaler 3-Sekunden-Aufnahme, 1440p30/60- und 1080p30-Presets.
+- Profile mit lokal auf 96 × 96 Pixel komprimierter Avatar-Datei (nur JPEG), Bio und Lieblingsspiel. Peer-Profiltransfer ist auf eng begrenzte Datenfelder und Bilder beschränkt; Bearbeitungsentwürfe werden erst nach Speichern publiziert.
+- Spielkalender mit SQLite-Terminen, wöchentlicher Wiederholung, Monatsliste, Windows-Erinnerungen **nur solange Kizuna läuft**, ICS-Export und lokaler Berliner Sommer-/Winterzeit, Kopieren/Teilen in der Lounge sowie ausdrücklich **manuell versendeten** WhatsApp- und E-Mail-Einladungen.
+- Drei eigene synthetische Signal-Sounds: Tor-Signal, Anpfiff, künstlicher Applaus. Keine fremden Aufnahmen oder ungeprüft lizenzierten Sounds eingebaut.
+- Zentraler Updater zeigt Changelog nach sicherer Aktivierung. Releasekanal weiterhin deaktiviert und signaturabhängig.
+- GitHub-Workflow bremst unnötige parallele CI-Aufträge durch `concurrency.cancel-in-progress`.
+
+## Besonders relevante Dateien
+- `src/GameCalendar.tsx`, `desktop/calendar.cjs`: lokale Terminplanung + Erinnerungen + ICS.
+- `src/ProfilePanel.tsx`, `src/mesh.ts`, `src/main.tsx`: Profile und Peer-Broadcast.
+- `src/reactions.ts`, `src/ReactionPicker.tsx`: erweiterte Unicode-Reaktionsbibliothek.
+- `desktop/bundled-sounds.cjs`: reproduzierbare Originaleffekte.
+- `desktop/central-updater.cjs`: begrenzte Release-Informationen mit Einwilligungsdialog.
+- `docs/MASTER_ROADMAP.md`: priorisierte Gesamtcheckliste und empfohlene GPT-Denkstufe für jedes Arbeitspaket.
+- `docs/DEVELOPMENT_PROGRESS.md`: vollständige chronologische Entwicklung.
+- `docs/HARDWARE_ACCEPTANCE.md`: echte Windows-/Zwei-PC-Abnahme.
+- `docs/SOUND_SOURCES.md`: Rechte- und Soundquellennachweis.
+
+## Noch nicht abgeschlossen – durch weiteren Textcode nicht seriös belegbar
+1. Echte Windows-Zwei-PC-Hardwaretests, 1440p60-Qualitätsmessungen, Sprach- und Ende-zu-Ende-Audiolatenz über verschiedene Netze.
+2. Zusätzliche freie externe Musik/Fangesänge nur nach Herkunfts-/Lizenzprüfung. Bisher ausschließlich eigene synthetische Sounds.
+3. Automatische E-Mail-/WhatsApp-Zustellung ohne laufendes Programm benötigt einen autorisierten Versandweg, Konfiguration, explizites Opt-in und ggf. Kostenfreigabe.
+4. Signierte zentrale App-Releases und verifizierte Auto-Updates fehlen wegen Herausgeber-/Codesignatur-/Releasekonfiguration. Bestehende Integritätssicherungen nicht umgehen.
+5. Unabhängiges Abschlussaudit, Windows-GUI, Long-Run und Nutzerfreigabe für die Veröffentlichung.
+
+## Unveränderliche Sicherheitsregeln
+- App-ID `de.voxrally.desktop`, `voxrally://`, lokaler Datenordner `VoxRally` und vorhandene Signaturschlüssel beibehalten, solange Migration nicht getestet.
+- Kein eigenmächtiger Merge nach `main`, keine ungesicherten Updates oder echten Nachrichten an Freunde.
+- Gute Unit-Tests ≠ produktionsreife App; fehlende Hardware-/Leistungsbeweise deutlich kennzeichnen.
+- Keine falschen Werbeaussagen wie „ruckelfreie 1440p60 garantiert“ oder „WhatsApp automatisch“.
+
+---
+
+## Stand 2026-11-16 – Nacharbeit zu Spielsound und Audioverzögerung
+- Zuletzt geprüfter Quellcommit: `f496c99084580b2fc7fcdc863bc19d86025b20db`; GitHub Actions: https://github.com/agnesderhirte-dot/Kizuna/actions/runs/43817017128 (**Build grün; 34/35 Unit-Tests erfolgreich, einer übersprungen**).
+- Per-Stream-Stummschaltung in `src/VideoStage.tsx` und `src/main.tsx`. In der Stream-Toolbar wird der Spielsound jedes fremden Teilnehmers separat geschaltet; RemoteAudio rendert nur andere Audioarten, Soundboard bleibt unabhängig.
+- Bildschirm und sein Ton werden in einem HTMLVideoElement synchron abgespielt. Andere Screens haben im Fokusmodus Audio-only-Fallback.
+- `Mesh.sound` prüft Empfänger-Acknowledgements und Cache, sendet Sounddateien nicht bei jedem Klick erneut; kürzere Wiedergabeverzögerung für neue Clients; alter Client-Fallback. Voraussichtliche lokale Scheduling-Verzögerung 160ms, **keine End-to-End-Garantie**.
+- `QualityDiagnostics` erfasst aus WebRTC-Statistiken auch playout buffer und kaschierte Audio-Samples.
+- **Offen**: Hardware-/Sprach-/Audio-Lag-Test mit zwei echten PCs, Ton-Sync-Verifikation bei Netzwerklast, 1440p60-Benchmark. Kein Merge, Release oder Client-Update erfolgt.
+- Zuletzt: Roadmap `docs/MASTER_ROADMAP.md` und Entwicklungsprotokoll `docs/DEVELOPMENT_PROGRESS.md`. Während der aktiven Entwicklung sind neue CI-Läufe zu prüfen, bei nächstem Commit erneut validieren.
+
+# KIZUNA – aktueller Entwicklungs-Handoff 16.11.2026
+
+**Dieser Abschnitt ergänzt die historische KIZUNA-0.3.2-Übergabe unten; alte Testergebnisse gelten nicht automatisch für neue Funktionen.**
+
+- GitHub: `agnesderhirte-dot/Kizuna`.
+- Entwicklungsbranch: `feat/retro-modern-skins`; Draft-PR #1: https://github.com/agnesderhirte-dot/Kizuna/pull/1.
+- Neu: neun Skinvarianten mit Skin-Galerie, Streaming-Fokusmodus, pegelbasierte Mikrofon-Sprechererkennung und skinabhängige Ränder, Remote-Zustände über bestehenden WebRTC-Datenkanal, Fußball-/Standardreaktionen (TOR/VAR/ELFMETER) mit maximal sechs Reaktionen pro drei Sekunden und lokalen Stream-Overlays.
+- Dauerhafte Aufgabenliste: `docs/MASTER_ROADMAP.md`; lückenloser Arbeitsstand: `docs/DEVELOPMENT_PROGRESS.md`.
+- Build und Unit-Tests **grün**: GitHub Actions `validate` Run 43775020122, SHA `4a57166b0a3a62af7a028f7bf00b1775dcb99469`; TypeScript + Vite bestanden, 24/25 Tests bestanden, einer übersprungen. Frühere CI-Fehler behoben.
+- Kein neuer Installer, kein Merge in `main`, keine Update-Publikation. Nutzerfreigabe vor Release zwingend.
+- **Wichtige Grenze**: Sprecheraktivität ist eine ressourcenschonende RMS-/dB-Heuristik, keine sprachspezifische VAD. Reale Mikrofon-, Audio-, Zwei-PC-, Windows-GUI- und 1440p60-Tests stehen aus.
+- Nächste Schritte: Sichtprüfung Skins/Sprecher/Emojis auf zwei PCs, Mikrofontest und Analyse schlechter Audioqualität; 1440p60-Messung; sichere zentrale Updates nach bestätigter Signatur-/Release-Konfiguration.
+- Schlüssel, App-ID, `voxrally://`, lokaler Datenpfad und bestehende Update-Vertrauensbasis unverändert lassen.
+
+---
+
 # KIZUNA 0.3.2 – Übergabe 15.11.2026
 
 ## Stand

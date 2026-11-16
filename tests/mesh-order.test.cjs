@@ -1,7 +1,6 @@
 const test=require('node:test');const assert=require('node:assert/strict');const fs=require('node:fs');
 test('incoming description completes before ICE; rejected SDP resets answer flag',async()=>{
- const code=require('node:module').stripTypeScriptTypes(fs.readFileSync(require('node:path').join(__dirname,'../src/mesh.ts'),'utf8'),{mode:'transform'});
- const {Mesh}=await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
+ const {Mesh}=await require('./load-ts.cjs').loadTs('src/mesh.ts');
  let applying=false,candidates=0;
  global.RTCPeerConnection=class{connectionState='new';signalingState='stable';remoteDescription=null;async setRemoteDescription(d){applying=true;await new Promise(r=>setTimeout(r,15));applying=false;if(d.sdp==='bad')throw Error('bad SDP');this.remoteDescription=d;}async addIceCandidate(){assert.equal(applying,false);candidates++;}close(){this.connectionState='closed';}getSenders(){return [];}restartIce(){}};
  const mesh=new Mesh({turnUrl:''});mesh.self='a';mesh.add('b','B',false);
