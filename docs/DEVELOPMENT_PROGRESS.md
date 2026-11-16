@@ -82,3 +82,13 @@ Commit, betroffene Dateien, Status der Roadmap, nachweislich ausgeführte Tests 
 - **Nachweis:** [Actions-Run 43828763644](https://github.com/agnesderhirte-dot/Kizuna/actions/runs/43828763644), Commit `f61ec2a953ab41fc6c40ef0187ce9f642e0047d3`, Build bestanden; **74 Tests bestanden / 0 fehlgeschlagen / 1 übersprungen**; Runtime-Audit meldete keine bekannten Schwachstellen.
 - Sicherheitsbericht: `docs/SECURITY_AUDIT.md`; verbleibende Risiken: dauerhafte Peeridentität, unverschlüsseltes LAN-Signaling, Decoder-Fuzzing, Windows-Zwei-PC-/Langzeittests, reale 1440p60-/Audio-Messungen, signierter Updatepfad und unabhängiges Schlussreview.
 - **Kein Merge nach main, kein neuer Installer, keine Veröffentlichung.**
+
+## 2026-11-16 – KZ-020 Fußballweisheiten und KZ-014 Performance-Durchlauf
+- 36 selbst verfasste, kurze Fußballweisheiten in `src/FootballWisdom.ts`; Anzeige beim Programmstart unabhängig vom Netzwerk. Gespeichert wird nur der zuletzt verwendete numerische Index, sodass beim folgenden Start nicht unmittelbar derselbe Spruch erscheint. Schließen über ×, automatische Ausblendung beim Betreten eines Raums. Stil über vorhandene Skin-Akzentfarbe, keine Assets, externe APIs oder Copyright-Zuschreibungen.
+- `src/MediaActivityGate.ts`: Electron-IPC für aktives Mikrofon bzw. geteilte Medien nur noch bei Statuswechsel statt nach jeder UI-/Peer-Änderung. Fehler erlaubt Wiederholung.
+- `src/SoundPlaybackPool.ts`: HTMLAudioElement und Blob-URLs bei Audio-Ende, Fehler, manuellem Abbruch, Verlassen des Raums und React-Unmount freigeben.
+- Audio-Ausgabegerät in `src/main.tsx` und `src/VideoStage.tsx` ausschließlich bei tatsächlicher Ausgabeänderung neu konfigurieren; Lautstärkeregelung getrennt davon.
+- Asynchroner Hintergrundbild-Import ignoriert bereits überholte Resultate.
+- Regressionstests: `tests/football-wisdom.test.cjs`, `tests/runtime-performance.test.cjs`; bestehende Tests bei geänderter Audio-Ausgaberoutine angepasst.
+- **GitHub Actions**: [Run 43835700399](https://github.com/agnesderhirte-dot/Kizuna/actions/runs/43835700399), `pnpm build` erfolgreich, **83 Tests bestanden, 0 fehlgeschlagen, 1 übersprungen** und `pnpm audit --prod --audit-level high` erfolgreich.
+- Unverändert offen: Windows-GUI, realer Audio-/1440p60-Benchmark, unabhängige Schlussprüfung KZ-014 und sichere signierte Releasekette. Keine Freigabe, keine Änderung der installierten Version.
