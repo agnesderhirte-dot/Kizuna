@@ -17,5 +17,5 @@ export function buildDiagnosticReport(version:string,settings:DiagnosticConfig,l
  ];
  const measurements=lines.slice(0,60).map(clean).filter(Boolean);
  if(!measurements.length)measurements.push('Noch keine Messwerte vorhanden. Zum Messen aktiv mit einem Freund verbinden.');
- return [...header,...measurements,'','Hinweis: Keine Zugangsdaten, Einladungen, Chatinhalte oder Bild-/Tonaufnahmen enthalten.'].join('\n').slice(0,11000);
+ return [...header,...measurements,'','Hinweis: Teilnehmernamen können enthalten sein. Vor Weitergabe prüfen. Keine Chat-, Einladungs-, Bild- oder Toninhalte automatisch beigefügt.'].join('\n').slice(0,11000);
 }
