@@ -19,7 +19,7 @@ concurrency:
 jobs:
   windows-package-smoke:
     runs-on: windows-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     env:
       CSC_IDENTITY_AUTO_DISCOVERY: 'false'
       CI: 'true'
@@ -45,3 +45,28 @@ jobs:
         env:
           VOXRALLY_EXE: ${{ github.workspace }}/release/win-unpacked/VoxRally.exe
         run: pnpm test:desktop
+      - name: Build unsigned NSIS test installer (no publication)
+        run: pnpm exec electron-builder --win nsis --x64 --publish never
+      - name: Create SHA-256 manifest for the test installer
+        shell: pwsh
+        run: |
+          $installer = 'release/KIZUNA-Setup-x64.exe'
+          if (!(Test-Path $installer)) { throw "Installer fehlt: $installer" }
+          $signature = Get-AuthenticodeSignature $installer
+          if ($signature.Status -eq 'Valid') {
+            Write-Host 'Installer ist gueltig signiert; dieser Workflow soll lediglich unsignierte Testinstallationen erstellen.'
+          }
+          $hash = (Get-FileHash $installer -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  KIZUNA-Setup-x64.exe" | Set-Content -Path 'release/KIZUNA-Setup-x64.exe.sha256' -Encoding utf8
+          Write-Host "SHA-256: $hash"
+      - name: Provide unsigned 0.4.0 test installer as short-lived workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: KIZUNA-0.4.0-x64-UNSIGNED-TEST-ONLY
+          path: |
+            release/KIZUNA-Setup-x64.exe
+            release/KIZUNA-Setup-x64.exe.sha256
+            docs/TEST_INSTALLER_README.md
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
