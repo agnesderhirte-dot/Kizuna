@@ -100,7 +100,9 @@ export class Mesh {
     await new Promise(r=>setTimeout(r,10));
    }
    await this.drain(p);
-   const acknowledged=new Promise<boolean>(resolve=>{
+   // A peer may already have the asset (e.g. received from another friend)
+   // and acknowledge sound-start before the transfer finishes.
+   const acknowledged=p.readySounds.has(hash)?Promise.resolve(true):new Promise<boolean>(resolve=>{
     const timeout=setTimeout(()=>{p.pendingSoundReady.delete(hash);resolve(false);},p.soundAck?2500:600);
     p.pendingSoundReady.set(hash,{resolve,timeout});
    });
