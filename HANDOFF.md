@@ -1,3 +1,18 @@
+# AKTUELLSTE ÜBERGABE – 16.11.2026, KZ-016–018
+
+Diese Hinweise überschreiben die älteren Statusangaben weiter unten; die alten Angaben sind nur noch historische Momentaufnahmen.
+
+- Branch: `feat/retro-modern-skins`; Draft-PR https://github.com/agnesderhirte-dot/Kizuna/pull/1; `main` und installierte Windows-Version nicht verändert.
+- **Neu im Branch:** Teilnehmerbezogene Sprachausgabe (individueller Pegel und Stumm), pro Peer lokale Unterdrückung von Reaktionen und Soundboard-Clips. Die Person sendet weiterhin ungestört, der Empfänger kontrolliert nur sein eigenes Wiedergabemischpult. `src/ParticipantAudio.tsx`, `src/audio-mix.ts`, `src/main.tsx`, `src/mesh.ts`.
+- **Diagnosebericht:** `src/diagnostic-report.ts` und validierte `copyDiagnostics`-IPC. Nur manuelles Kopieren, kein automatischer Upload. Kann Teilnehmernamen enthalten; vor Weitergabe prüfen.
+- **QualityAdvisor:** `src/QualityAdvisor.ts` und erweiterte `src/QualityDiagnostics.ts` zeigen vorsichtige Hinweise erst nach 3 aufeinanderfolgenden hohen Audio-/Videopaketverlust-, Audiopuffer- oder RTT-Werten. Kein bloßer FPS-Alarm für statische Bilder und keine automatische Netzwerkeinstellung.
+- **Sound löschen:** `deleteSound`-IPC mit validierter SHA-256-ID, nur `kind==='sound'`, zweistufige UI-Bestätigung. Andere Assets bleiben unangetastet.
+- **CI-Nachweis Code:** GitHub Actions https://github.com/agnesderhirte-dot/Kizuna/actions/runs/43825148728: `pnpm build` erfolgreich, `pnpm test` **66 bestanden, 0 fehlgeschlagen, 1 übersprungen**. Spätere Dokumentations-/Hinweistext-Commits sind anhand des letzten CI-Runs noch zu prüfen.
+- **Noch offen:** echte Windows- und Zwei-PC-Tests, 1440p60 unter realer Last, End-to-End-Tonlatenz, abschließendes Security- und Performanceaudit, signierter zentraler Update-Release und ausdrückliche Freigabe. Kein Installer/Update ausgeliefert.
+- Master-Roadmap: `docs/MASTER_ROADMAP.md`; Testmatrix: `docs/HARDWARE_ACCEPTANCE.md`; Entwicklungsverlauf: `docs/DEVELOPMENT_PROGRESS.md`.
+
+---
+
 # AKTUELLER HANDOFF – 16.11.2026 (ohne Codex-Sitzung)
 
 Diese Kopfsektion ist der **neueste Stand**. Ältere Übergaben weiter unten sind historische Momentaufnahmen und dürfen nicht unkritisch als aktueller Status übernommen werden.
