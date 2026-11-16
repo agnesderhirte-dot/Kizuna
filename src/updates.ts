@@ -22,8 +22,21 @@ export class RoomUpdates{
  async receive(id:string,l:Link,raw:string|ArrayBuffer){
   if(raw instanceof ArrayBuffer){if(this.receiving!==id||!l.offer)throw Error('Unangeforderter Updateblock');l.offset=await window.vox.writeUpdate({hash:l.offer.sha256,offset:l.offset,bytes:new Uint8Array(raw)});this.send(l,{type:'ack',offset:l.offset});const progress=`Update laden: ${Math.floor(l.offset/l.offer.size*100)} %`;if(this.progress!==progress){this.progress=progress;this.changed();}return;}
   const m=JSON.parse(raw);
-  if(m.type==='version'&&typeof m.version==='string'&&/^\d{1,4}\.\d{1,4}\.\d{1,4}$/.test(m.version)&&newer(m.version,APP_VERSION)){this.availableVersion=m.version;void window.vox.notifyUpdate({version:m.version});this.changed();}
-  if(m.type==='offer'&&typeof m.manifest?.version==='string'&&/^\d{1,4}\.\d{1,4}\.\d{1,4}$/.test(m.manifest.version)){if(this.receiving===id)return;l.offer=m.manifest;this.availableVersion=m.manifest.version;if(newer(m.manifest.version,APP_VERSION))void window.vox.notifyUpdate({version:m.manifest.version});this.changed();}
+  // Version strings are unauthenticated hints, never proof that an update exists.
+  if(m.type==='version')return;
+  if(m.type==='offer'){
+   if(this.receiving===id)return;
+   // Check the publisher's pinned Ed25519 signature before displaying or caching.
+   // The same signature is checked again before accepting or installing a file.
+   let verified:UpdateManifest;
+   try{verified=await window.vox.verifyUpdateOffer(m.manifest);}
+   catch{this.error('Updateangebot ohne gültige Entwicklersignatur verworfen.');return;}
+   if(this.links.get(id)!==l||l.dc.readyState!=='open'||!newer(verified.version,APP_VERSION))return;
+   l.offer=verified;
+   this.availableVersion=verified.version;
+   void window.vox.notifyUpdate({version:verified.version}).catch(()=>{});
+   this.changed();
+  }
   if(m.type==='accept'&&this.offer&&m.hash===this.offer.sha256&&!l.sending){void this.transfer(l,this.offer).catch(e=>{this.error(String(e));l.dc.close();});}
   if(m.type==='ack'&&Number.isSafeInteger(m.offset)&&m.offset===l.offset)l.ack?.();
   if(m.type==='finish'&&this.receiving===id&&l.offer){this.ready=await window.vox.finishUpdate(l.offer.sha256);this.receiving=undefined;this.progress='Update geprüft und bereit. Installation beendet KIZUNA.';this.changed();}
