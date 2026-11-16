@@ -1,5 +1,7 @@
 /** Versioned, transactional migrations preserve data across automatic application updates. */
 const calendar=require('./calendar.cjs');
+const fs=require('node:fs');
+const {DatabaseSync}=require('node:sqlite');
 const SCHEMA_VERSION=2;
 const SCHEMA={
  kv:['key','value'],
@@ -16,12 +18,32 @@ function verifySchema(db){
  }
 }
 
-function migrate(db){
+/** SQLite-backed consistent backup, not a raw copy of a potentially active WAL database. */
+function ensureUpgradeBackup(db,file){
+ if(!file)return;
+ const exists=fs.existsSync(file);
+ if(!exists){
+  try{db.prepare('VACUUM INTO ?').run(file);}
+  catch(error){try{fs.rmSync(file,{force:true});}catch{}throw error;}
+ }
+ let valid=false;
+ try{
+  const snapshot=new DatabaseSync(file,{readOnly:true});
+  try{valid=snapshot.prepare('PRAGMA integrity_check').get()?.integrity_check==='ok'&&snapshot.prepare('PRAGMA user_version').get()?.user_version===1;}
+  finally{snapshot.close();}
+ }catch{valid=false;}
+ if(!valid){
+  if(!exists)fs.rmSync(file,{force:true});
+  throw Error('Automatische Sicherung der alten KIZUNA-Datenbank ist beschädigt. Upgrade abgebrochen.');
+ }
+}
+function migrate(db,backupPath){
  const raw=db.prepare('PRAGMA user_version').get();
  const current=raw?.user_version;
  if(!Number.isInteger(current)||current<0||current>SCHEMA_VERSION)
   throw Error('Unbekannte oder neuere KIZUNA-Datenbankversion; keine Änderung vorgenommen.');
  if(current===SCHEMA_VERSION){verifySchema(db);return current;}
+ if(current===1)ensureUpgradeBackup(db,backupPath);
  db.exec('BEGIN IMMEDIATE');
  try{
   // The 0.3.2 database was version 1. CREATE IF NOT EXISTS preserves those records.
@@ -38,4 +60,4 @@ function migrate(db){
  }catch(error){db.exec('ROLLBACK');throw error;}
  return SCHEMA_VERSION;
 }
-module.exports={SCHEMA_VERSION,migrate};
+module.exports={SCHEMA_VERSION,migrate,ensureUpgradeBackup};
