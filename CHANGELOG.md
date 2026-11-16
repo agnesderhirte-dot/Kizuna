@@ -4,6 +4,10 @@
 - Neun Skins inklusive Winamp Retro, Messenger 2003, Neon Wave und Modern Glass, Skin-Galerie und Streaming-Fokusmodus.
 - Mikrofonbasierte Sprecherumrandung, Fußball-/Gaming-Emojis und speicherbare Reaktionsfavoriten.
 - Bildschirm-Spielton je Teilnehmer separat stummschaltbar, ohne Sprachchat oder Torhymnen zu beeinflussen.
+- Individuelle Sprachlautstärke und Mute je Mitspieler; dessen Emojis und Soundboard-Beiträge lassen sich unabhängig ausblenden.
+- Diagnosewerte nach Nutzerklick kopieren, inklusive Hinweis auf möglicherweise enthaltene Teilnehmernamen.
+- Qualitätsberatung erst bei dauerhaft erhöhten Audio-/Videopaketverlusten, Audiopuffern oder RTT.
+- Eigene Sounddateien mit zweistufiger Bestätigung aus der lokalen Bibliothek entfernen.
 - Bild und Spielton sichtbarer Streams über dasselbe Wiedergabeelement; Soundboard-Cache und weniger künstliche Wartezeit.
 - 1440p30-/1440p60- und Sparprofile, ausführliche WebRTC-FPS-, Latenz-, Jitter- und Paketverlustdiagnose.
 - Lokaler Mikrofontest mit kurzer, nur im Arbeitsspeicher gehaltener Testaufnahme.
