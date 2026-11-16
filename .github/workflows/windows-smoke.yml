@@ -40,3 +40,8 @@ jobs:
         run: pnpm exec electron-builder --win --x64 --dir --publish never
       - name: Validate packaged EXE startup, preload isolation and persistence
         run: node scripts/package-smoke.cjs
+      - name: Validate two simultaneous synthetic game streams and voice chat
+        timeout-minutes: 12
+        env:
+          VOXRALLY_EXE: ${{ github.workspace }}/release/win-unpacked/VoxRally.exe
+        run: pnpm test:desktop
