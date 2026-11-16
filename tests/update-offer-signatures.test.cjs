@@ -66,6 +66,8 @@ test('native verification handler uses the pinned developer signing key',()=>{
  assert.throws(()=>verify(manifest),/KIZUNA-Entwicklerschlüssel/);
  const native=fs.readFileSync(path.join(__dirname,'../desktop/updates.cjs'),'utf8');
  const bridge=fs.readFileSync(path.join(__dirname,'../desktop/preload.cjs'),'utf8');
- assert.ok(native.includes("handle('verifyUpdateOffer',manifest=>verify(manifest))"));
+ assert.ok(native.includes("handle('verifyUpdateOffer',manifest=>verifyManifest(manifest))"));
+ assert.ok(native.includes("verifyManifest=verify"));
+ assert.ok(native.includes("function verify(m){return verifyWithPublicKey(m,fs.readFileSync("));
  assert.ok(bridge.includes("'verifyUpdateOffer'"));
 });
