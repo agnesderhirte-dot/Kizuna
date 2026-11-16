@@ -38,7 +38,8 @@ function assetInfo(buffer,kind){
  else if(h.toString('ascii',0,3)==='ID3'||(h[0]===255&&(h[1]&224)===224))mime='audio/mpeg';
  else throw Error('Unterstützt: WAV, MP3, OGG, FLAC');return {bytes:buffer,mime};
 }
-function disconnect(){clearTimeout(retryTimer);connectionSpec=null;retryCount=0;if(socket){socket.removeAllListeners();socket.close();socket=null;}activeRoom=null;activeInvite=null;}
+function disconnect(){clearTimeout(retryTimer);connectionSpec=null;retryCount=0;pendingCapture=null;if(socket){socket.removeAllListeners();socket.close();socket=null;}activeRoom=null;activeInvite=null;}
+async function stopHosting(){const old=server;server=undefined;if(old)await old.close();}
 async function connect(spec,create=false){
  clearTimeout(retryTimer);if(socket){socket.removeAllListeners();socket.close();}connectionSpec=spec;const s=storedSettings();const url=security.endpoint(spec.server);socket=new WebSocket(url,{maxPayload:65536,perMessageDeflate:false,handshakeTimeout:10000});const current=socket;
  current.on('open',()=>current.send(JSON.stringify({v:1,type:'join',room:spec.room,token:spec.token,name:s.name,create,createKey:create?server.createKey:undefined})));
@@ -70,8 +71,8 @@ else {
   handle('capture',arg=>{const c=z.object({id:z.string().max(256),audio:z.boolean()}).strict().parse(arg);pendingCapture={...c,time:Date.now()};return true;});
   handle('host',async arg=>{
    const cfg=z.object({lan:z.boolean(),address:z.string().max(256),online:z.boolean().optional()}).strict().parse(arg);
-   if(cfg.online){disconnect();let saved=get('online-room',null);if(!saved){saved={room:crypto.randomBytes(16).toString('hex'),token:safeStorage.encryptString(crypto.randomBytes(32).toString('base64url')).toString('base64')};set('online-room',saved);}const token=safeStorage.decryptString(Buffer.from(saved.token,'base64'));activeRoom=saved.room;activeInvite=`voxrally://join/${saved.room}?token=${token}&server=peerjs`;return {room:saved.room,address:'PeerJS Cloud',cloud:{room:saved.room,token,self:`vr-${saved.room}-h`,host:`vr-${saved.room}-h`,name:storedSettings().name}};}
-   disconnect();if(server)await server.close();server=createSignaling({host:cfg.lan?'0.0.0.0':'127.0.0.1',port:8765});
+   if(cfg.online){disconnect();await stopHosting();let saved=get('online-room',null);if(!saved){saved={room:crypto.randomBytes(16).toString('hex'),token:safeStorage.encryptString(crypto.randomBytes(32).toString('base64url')).toString('base64')};set('online-room',saved);}const token=safeStorage.decryptString(Buffer.from(saved.token,'base64'));activeRoom=saved.room;activeInvite=`voxrally://join/${saved.room}?token=${token}&server=peerjs`;return {room:saved.room,address:'PeerJS Cloud',cloud:{room:saved.room,token,self:`vr-${saved.room}-h`,host:`vr-${saved.room}-h`,name:storedSettings().name}};}
+   disconnect();await stopHosting();server=createSignaling({host:cfg.lan?'0.0.0.0':'127.0.0.1',port:8765});
    await new Promise((resolve,reject)=>{server.wss.once('listening',resolve);server.wss.once('error',reject);});
    const candidates=Object.values(os.networkInterfaces()).flat().filter(i=>i&&i.family==='IPv4'&&!i.internal).map(i=>i.address);
    const address=cfg.address||candidates.find(a=>a.startsWith('192.168.')||a.startsWith('10.'))||candidates[0]||'127.0.0.1';
@@ -79,11 +80,11 @@ else {
    let saved=get('host-room',null);if(!saved){if(!safeStorage.isEncryptionAvailable())throw Error('Secure Storage nicht verfügbar');saved={room:crypto.randomBytes(16).toString('base64url'),token:safeStorage.encryptString(crypto.randomBytes(32).toString('base64url')).toString('base64')};set('host-room',saved);}const room=security.id.parse(saved.room),token=safeStorage.decryptString(Buffer.from(saved.token,'base64'));
    await connect({server:'ws://127.0.0.1:8765/',publicServer,room,token},true);return {room,address:publicServer};
   });
-  handle('join',async arg=>{const spec=security.invite(arg);if(spec.server==='peerjs'){disconnect();activeRoom=spec.room;activeInvite=arg;return {room:spec.room,address:'PeerJS Cloud',cloud:{room:spec.room,token:spec.token,self:`vr-${crypto.randomUUID()}`,host:`vr-${spec.room}-h`,name:storedSettings().name}};}await connect(spec);return {room:spec.room,address:spec.server};});
+  handle('join',async arg=>{const spec=security.invite(arg);disconnect();await stopHosting();if(spec.server==='peerjs'){activeRoom=spec.room;activeInvite=arg;return {room:spec.room,address:'PeerJS Cloud',cloud:{room:spec.room,token:spec.token,self:`vr-${crypto.randomUUID()}`,host:`vr-${spec.room}-h`,name:storedSettings().name}};}await connect(spec);return {room:spec.room,address:spec.server};});
   handle('getInvite',()=>{if(!activeInvite)throw Error('Zuerst Raum betreten');return activeInvite;});
   handle('emailInvite',async()=>{if(!activeInvite)throw Error('Zuerst Raum betreten');const subject='Einladung zu KIZUNA';const body='Komm in meinen KIZUNA-Raum!\n\n'+activeInvite+'\n\nKIZUNA muss installiert sein. Falls dein Mailprogramm den Link nicht öffnet, kopiere ihn in KIZUNA unter Freunden beitreten. Der Gastgeber muss den Raum geöffnet lassen.';await shell.openExternal('mailto:?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body));});
   handle('copyInvite',()=>{if(!activeInvite)throw Error('Zuerst Raum betreten');clipboard.writeText(activeInvite);return true;});
-  handle('leave',()=>{disconnect();return true;});
+  handle('leave',async()=>{disconnect();await stopHosting();return true;});
   handle('signal',arg=>{const m=z.object({to:security.id,data:z.object({description:z.object({type:z.enum(['offer','answer']),sdp:z.string().max(58000)}).optional(),candidate:z.unknown().optional()}).strict()}).strict().parse(arg);if(!socket||socket.readyState!==WebSocket.OPEN||JSON.stringify(m).length>60000)throw Error('Keine Verbindung');socket.send(JSON.stringify({v:1,type:'signal',...m}));return true;});
   handle('importAsset',async arg=>{const kind=z.enum(['background','sound','emoji','avatar']).parse(arg);const picked=await dialog.showOpenDialog(win,{properties:['openFile'],filters:[{name:kind,extensions:kind==='sound'?['wav','mp3','ogg','flac']:['png','jpg','jpeg','webp','gif']}]});if(picked.canceled)return null;const file=picked.filePaths[0];if(fs.statSync(file).size>10*1024*1024)throw Error('Maximal 10 MB');if(db.prepare('SELECT count(*) AS n FROM assets').get().n>=100)throw Error('Bibliothek maximal 100 Dateien');const a=assetInfo(fs.readFileSync(file),kind);if(a.bytes.length>16*1024*1024)throw Error('Dekodierte Datei zu groß');const id=crypto.createHash('sha256').update(a.bytes).digest('hex');fs.writeFileSync(assetFile(id),a.bytes);const item={id,name:path.basename(file).slice(0,80),kind,mime:a.mime};db.prepare('INSERT OR REPLACE INTO assets VALUES(?,?,?,?)').run(id,item.name,kind,a.mime);return item;});
   handle('installBuiltinSounds',()=>{
