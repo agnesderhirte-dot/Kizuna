@@ -17,13 +17,13 @@ const positive=(value:unknown)=>finite(value)?Math.max(0,value):0;
 const display=(value:unknown,unit:string)=>finite(value)?`${Math.round(value)} ${unit}`:'k. A.';
 const delta=(now:number|undefined,previous:number|undefined)=>finite(now)&&finite(previous)&&now>=previous?now-previous:undefined;
 
-export type PeerQuality={lines:string[];videoSendFps?:number;videoReceiveFps?:number;audioLossPct?:number;audioPlayoutBufferMs?:number};
+export type PeerQuality={lines:string[];videoSendFps?:number;videoReceiveFps?:number;videoLossPct?:number;audioLossPct?:number;audioPlayoutBufferMs?:number;roundTripMs?:number};
 export class QualityDiagnostics {
  private old=new Map<string,Snapshot>();
  measure(peerId:string,peerName:string,report:RTCStatsReport):PeerQuality{
   const stats=new Map<string,Stat>();
   report.forEach(value=>{const item=value as Stat;stats.set(item.id,item);});
-  let route='Verbindung wird aufgebaut';
+  let route='Verbindung wird aufgebaut';let roundTripMs:number|undefined;
   for(const s of stats.values()){
    if(s.type!=='transport'||!s.selectedCandidatePairId)continue;
    const pair=stats.get(s.selectedCandidatePairId);
@@ -31,10 +31,10 @@ export class QualityDiagnostics {
    const local=pair.localCandidateId?stats.get(pair.localCandidateId):undefined;
    const remote=pair.remoteCandidateId?stats.get(pair.remoteCandidateId):undefined;
    route=local?.candidateType==='relay'||remote?.candidateType==='relay'?'TURN-Relay':'P2P direkt';
-   if(finite(pair.currentRoundTripTime))route+=` · RTT ${display(pair.currentRoundTripTime*1000,'ms')}`;
+   if(finite(pair.currentRoundTripTime)){roundTripMs=pair.currentRoundTripTime*1000;route+=` · RTT ${display(roundTripMs,'ms')}`;}
   }
   const lines:string[]=[];
-  const outcome:PeerQuality={lines};
+  const outcome:PeerQuality={lines,roundTripMs};
   for(const s of stats.values()){
    const kind=s.kind||s.mediaType;
    if(!['inbound-rtp','outbound-rtp'].includes(s.type)||!kind||!['audio','video'].includes(kind))continue;
@@ -51,6 +51,7 @@ export class QualityDiagnostics {
    const codec=s.codecId?stats.get(s.codecId)?.mimeType?.replace(/^video\/|^audio\//,''):undefined;
    const direction=s.type==='outbound-rtp'?'Senden':'Empfang';
    if(kind==='video'){
+    if(direction==='Empfang'&&lossPct!==undefined)outcome.videoLossPct=lossPct;
     const fps=finite(s.framesPerSecond)?Math.round(s.framesPerSecond):undefined;
     if(direction==='Senden')outcome.videoSendFps=fps;
     else outcome.videoReceiveFps=fps;
