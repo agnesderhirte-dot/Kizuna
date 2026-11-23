@@ -46,3 +46,11 @@ Die folgenden Anforderungen ergänzen den bisherigen Entwicklungsauftrag und hab
 
 ### Umsetzung und Übergabe
 Die drei Bereiche schrittweise im bestehenden KIZUNA-Projekt umsetzen. Bestehende Funktionen und Nutzerdaten erhalten. Keine zusätzlichen kostenpflichtigen Dienste einführen. Erst nach nachvollziehbaren Prüfungen als fertig melden; offene Hardware-/Zwei-Netze-Tests ausdrücklich offenlassen. Änderungen, Messergebnisse und verbleibende Grenzen in der Übergabe dokumentieren.
+
+## Einfache Programmupdates (23.11.2026)
+- Nutzerbedienung: sichtbarer Button „Nach Updates suchen“, neue Version bestätigen, Downloadfortschritt sehen, anschließend „Update installieren“ und KIZUNA neu starten. Kein manueller Dateiaustausch zwischen Freunden und keine Kommandozeile für Nutzer.
+- Änderungen am Masterprompt sind Entwicklungsaufträge. Erst implementierter, geprüfter Code in einem veröffentlichten Windows-Installer erreicht die installierten Apps.
+- Die bestehende Installation benötigt einmalig eine Grundversion mit vollständig eingerichtetem Updatezugang. Danach sollen weitere veröffentlichte Versionen über den Button erreichbar sein.
+- Updateprüfung muss auch außerhalb eines Raums funktionieren. Fehler, aktuelle Version und noch nicht freigeschalteter Updatezugang werden verständlich angezeigt. Mehrfachklicks dürfen keine parallelen Downloads auslösen; verschobene Installation bleibt später erreichbar.
+- Keine Installation während aktiver Räume oder Streams. Signaturprüfung und Schutz vor Versionsrückschritt beibehalten. Keine GitHub-Zugangsdaten in der App verteilen.
+- Aktueller Stand: Update-Button und Statusmeldungen im Quellcode vorbereitet; Online-Veröffentlichung noch nicht eingerichtet. Privater Quellcode und öffentliche Installer sind getrennt zu behandeln. Öffentliche Installer erst nach Zustimmung des Nutzers veröffentlichen. Für den bestehenden zentralen Updateweg fehlen ein eingerichteter Downloadkanal und Windows-Code-Signing-Zertifikat; ohne diese Voraussetzungen nicht als funktionsfähig ausliefern.
