@@ -28,8 +28,8 @@ Die folgenden Anforderungen ergänzen den bisherigen Entwicklungsauftrag und hab
 - Abnahme: Einladung per Link und Mail-Entwurf, erstmaliger Beitritt auf zweitem Rechner, Neustart beider Apps, Wiederbeitritt ohne neue Einladung sowie Widerruf und Offline-Fall praktisch prüfen.
 
 ### 2. Flüssigere Übertragung bei hoher Auflösung
-- Nutzerangabe „1040“ vorläufig als 1920 × 1080 (1080p) verstehen; diese Annahme dokumentieren und bei abweichender Rückmeldung anpassen.
-- Ziel: flüssige Bildschirmübertragung bei 1080p, möglichst 60 FPS bei geeigneter Hardware und Verbindung; stabiler 30-FPS-Modus als Alternative. Keine pauschale Ruckelfreiheit unabhängig von Upload, Hardware oder Netzqualität versprechen.
+- Gewünschte Bildschirmauflösung: 2560 × 1440 (1440p), vom Nutzer bestätigt.
+- Ziel: flüssige Bildschirmübertragung bei 1440p, möglichst 60 FPS bei geeigneter Hardware und Verbindung; stabiler 30-FPS-Modus als Alternative. Keine pauschale Ruckelfreiheit unabhängig von Upload, Hardware oder Netzqualität versprechen.
 - Vor Änderungen einen reproduzierbaren Ausgangstest aufnehmen: tatsächliche Auflösung/FPS, Bitrate, verlorene Frames, Paketverlust, Jitter, RTT sowie CPU-/GPU-Auslastung. Sende-, Netz- und Empfangsengpass unterscheiden.
 - Aufnahme, verfügbare Hardwarekodierung, WebRTC-Sendeparameter und Darstellung gezielt optimieren. Unnötige Kopien, Renderdurchläufe und erneutes Öffnen von Aufnahmegeräten vermeiden. Änderungen an Qualität oder Vollbild dürfen laufende Streams nicht unnötig neu starten.
 - Bei Überlastung Bitrate, Bildrate oder Auflösung kontrolliert anpassen, ohne ständige Qualitätssprünge. Gewählte und tatsächlich erreichte Qualität sichtbar machen; Sprache und Bedienbarkeit erhalten.
@@ -42,7 +42,7 @@ Die folgenden Anforderungen ergänzen den bisherigen Entwicklungsauftrag und hab
 - Im Soundboard verständliche Namen, lokale Vorschau, bewusste Wiedergabe im Raum und Stopptaste anbieten. Vorschau darf beim Kollegen nicht erklingen. Eigene WAV-Dateien importieren und ungültige/zu große Dateien verständlich ablehnen.
 - Eigene Lautstärke und Stummschaltung für Fußball-Sounds anbieten; Mikrofon, Streamton und Sounds getrennt behandeln und das gewählte Ausgabegerät beachten. Schnelle Mehrfachklicks dürfen weder unkontrolliertes Überlagern noch Überlastung verursachen.
 - Sounds auch im Vollbild erreichbar machen. Bei beiden Teilnehmern tatsächlich hörbar testen, ohne doppelte Wiedergabe oder Rückkopplung über den Mikrofonkanal.
-- Abnahme: jede mitgelieferte WAV anhören, Vorschau und Raumwiedergabe unterscheiden, Lautstärke/Stoppen/Stummschaltung, Import, Offline-Nutzung und Wiedergabe während 1080p-Streaming prüfen.
+- Abnahme: jede mitgelieferte WAV anhören, Vorschau und Raumwiedergabe unterscheiden, Lautstärke/Stoppen/Stummschaltung, Import, Offline-Nutzung und Wiedergabe während 1440p-Streaming prüfen.
 
 ### Umsetzung und Übergabe
 Die drei Bereiche schrittweise im bestehenden KIZUNA-Projekt umsetzen. Bestehende Funktionen und Nutzerdaten erhalten. Keine zusätzlichen kostenpflichtigen Dienste einführen. Erst nach nachvollziehbaren Prüfungen als fertig melden; offene Hardware-/Zwei-Netze-Tests ausdrücklich offenlassen. Änderungen, Messergebnisse und verbleibende Grenzen in der Übergabe dokumentieren.
