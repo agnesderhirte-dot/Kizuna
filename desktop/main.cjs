@@ -4,6 +4,7 @@ const {DatabaseSync}=require('node:sqlite');const {WebSocket}=require('ws');cons
 const security=require('./security.cjs');const {createSignaling}=require('./signaling.cjs');
 app.setPath('userData',process.env.VOXRALLY_TEST_DATA?path.resolve(process.env.VOXRALLY_TEST_DATA):path.join(app.getPath('appData'),'VoxRally'));
 app.setName('KIZUNA');
+let centralUpdater;
 let mediaActive=true,win,db,server,socket,pendingCapture,activeRoom,activeInvite,pendingInvite,retryTimer,connectionSpec,retryCount=0;
 const page=pathToFileURL(path.join(__dirname,'../dist/index.html')).href;
 const defaults={skin:'original',cameraDevice:'',cameraResolution:'1080',cameraBitrate:4,cameraBackground:'',name:'Spieler',theme:'dark',accent:'#69e3b1',mic:'',output:'',profile:'detail',resolution:'native',fps:'30',bitrate:20,noise:true,echo:true,gain:false,systemAudio:true,background:'',turnUrl:'',turnUser:'',turnPassword:''};
@@ -48,6 +49,8 @@ else {
    try{const sources=await desktopCapturer.getSources({types:['screen','window']});const source=sources.find(s=>s.id===chosen.id);cb(source?{video:source,...(chosen.audio?{audio:'loopback'}:{})}:{});}catch{cb({});}
   });
   require('./updates.cjs').registerUpdates({handle,app,dialog,win:()=>win,shell,Notification,isBusy:()=>!!activeRoom||mediaActive});
+  handle('checkForUpdates',()=>centralUpdater?.check()??{state:'disabled',message:'Updateprüfung wird vorbereitet. Bitte gleich erneut versuchen.'});
+  handle('updateStatus',()=>centralUpdater?.getStatus()??{state:'idle',message:'Nach einer neuen KIZUNA-Version suchen.'});
   handle('mediaActive',value=>{mediaActive=z.boolean().parse(value);return true;});
   handle('load',()=>({settings:storedSettings(),assets:db.prepare('SELECT * FROM assets').all(),fingerprint:crypto.createHash('sha256').update(get('identity',{}).publicKey).digest('hex'),invite:pendingInvite||''}));
   handle('save',arg=>{const s=security.settings.parse(arg);if(s.turnUrl&&!/^turns?:[^\s<>]{1,490}$/.test(s.turnUrl))throw Error('Ungültige TURN-Adresse');if(s.turnPassword){if(!safeStorage.isEncryptionAvailable())throw Error('Secure Storage nicht verfügbar');s.turnPassword=safeStorage.encryptString(s.turnPassword).toString('base64');}set('settings',s);return true;});
@@ -77,7 +80,7 @@ else {
   handle('openLink',async arg=>{const u=new URL(z.string().max(2048).parse(arg));if(u.protocol!=='https:'||u.username||u.password)throw Error('Nur HTTPS-Links');await shell.openExternal(u.href);});
   win=new BrowserWindow({width:1400,height:920,minWidth:950,minHeight:650,backgroundColor:'#101319',title:'KIZUNA',autoHideMenuBar:true,webPreferences:{preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true,webSecurity:true,allowRunningInsecureContent:false,backgroundThrottling:false}});
   win.webContents.on('will-navigate',e=>e.preventDefault());win.webContents.setWindowOpenHandler(()=>({action:'deny'}));win.webContents.on('will-attach-webview',e=>e.preventDefault());
-  win.webContents.once('did-finish-load',()=>require('./central-updater.cjs').start({app,dialog,win:()=>win,isBusy:()=>!!activeRoom||mediaActive}));
+  win.webContents.once('did-finish-load',()=>{centralUpdater=require('./central-updater.cjs').start({app,dialog,win:()=>win,isBusy:()=>!!activeRoom||mediaActive,onStatus:status=>emit({type:'update-status',status})});emit({type:'update-status',status:centralUpdater.getStatus()});});
   win.loadURL(page);if(app.isPackaged&&!process.env.VOXRALLY_TEST_DATA)app.setAsDefaultProtocolClient('voxrally');
   for(const [key,action]of [['CommandOrControl+Shift+M','mute'],['CommandOrControl+Shift+D','deafen']])globalShortcut.register(key,()=>emit({type:'hotkey',action}));
  });

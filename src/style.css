@@ -7,3 +7,5 @@
 .stream-sounds{position:relative}.stream-sounds summary{cursor:pointer;padding:8px;font-size:12px}.stream-sounds .quality-popover button{display:block;width:100%;margin:6px 0;text-align:left}.device-check video[hidden]{display:none}
 
 .update-panel{padding:16px;border:1px solid var(--accent);border-radius:12px;background:#19382f;color:#eaf8f0;margin:12px 0;font-size:12px}.update-panel button{margin:4px}.update-panel p{line-height:1.6}
+
+.app-updates{margin-top:16px;padding-top:12px;border-top:1px solid #ffffff24}.app-updates b{font-size:12px}.app-updates p{font-size:12px;line-height:1.5;overflow-wrap:anywhere}.app-updates button:disabled{opacity:.65;cursor:wait}
